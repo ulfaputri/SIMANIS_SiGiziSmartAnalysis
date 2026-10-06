@@ -290,7 +290,7 @@ table{width:100%}
     </div>
     <div id="priorityMapSummary" class="priority-map-note" aria-live="polite"></div>
     <div id="priorityMapResult" class="priority-map"></div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px"><button class="btn2" type="button" onclick="downloadPriorityCSV()">⬇️ Download Anak Prioritas (CSV)</button><button class="btn2" type="button" onclick="downloadUnmeasuredCSV()">⬇️ Download Anak Belum Diukur Bulan Ini (CSV)</button></div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px"><button class="btn2" type="button" onclick="downloadPriorityCSV()">⬇️ Download Anak Prioritas (Excel)</button><button class="btn2" type="button" onclick="downloadUnmeasuredCSV()">⬇️ Download Anak Belum Diukur Bulan Ini (CSV)</button></div>
 <div class="priority-legend"><span>🔴 Prioritas relatif 1</span><span>🟡 Prioritas relatif 2</span><span>🟢 Prioritas relatif berikutnya</span><span>⚪ Belum ada data</span></div>
     <p class="priority-map-note">Catatan: tampilan ini merupakan peta skematis berbasis desa dan Posyandu, bukan peta geografis atau batas administrasi. Urutan prioritas bersifat relatif pada pilihan indikator dan bulan, bukan kategori klinis baru. Klik kartu Posyandu untuk memfilter daftar anak pada Posyandu tersebut.</p>
   </details>
@@ -1526,14 +1526,44 @@ function selectedDashboardMonth(){
 }
 function monthRecord(c,month){ return (c.pengukuran||[]).filter(r=>r.bulan===month).slice(-1)[0] || null; }
 function priorityForMonth(c,month){ return monthCategory(c,month); }
-function downloadPriorityCSV(){
-  const month=selectedDashboardMonth();
-  const rows=[['No','Nama Anak','Kategori Prioritas','Skor','Desa','Posyandu','Tanggal Pengukuran','BB (kg)','PB/TB (cm)','BB/U','TB/U','BB/TB','BB Naik/Tidak Naik','Faktor Risiko','Rekomendasi']];
-  const data=children.filter(c=>['MERAH','KUNING'].includes(priorityForMonth(c,month)))
-    .sort((a,b)=>(priorityForMonth(a,month)==='MERAH'?0:1)-(priorityForMonth(b,month)==='MERAH'?0:1)||String(a.nama).localeCompare(String(b.nama)));
-  data.forEach((c,i)=>{const r=monthRecord(c,month); const cat=priorityForMonth(c,month); rows.push([i+1,c.nama,cat,c.score||c.lastScore||0,c.desa||'',c.posyandu||'TIDAK TERCATAT',r?.tanggal||c.lastDate||'',r?.bb??'',r?.tb??'',r?.bb_u??'',r?.tb_u??'',r?.bb_tb??'',r?.naik??'',faktorTampil(c),rekomendasiSingkat(c)]);});
-  downloadCSV('SI-MANIS_Prioritas_'+month+'.csv',rows);
+function xmlEscape(v){
+  return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;");
 }
+function downloadPriorityExcel(){
+  const month=selectedDashboardMonth();
+  const headers=['No','Nama Anak','Kategori Prioritas','Skor','Desa','Posyandu','Tanggal Pengukuran','BB (kg)','PB/TB (cm)','BB/U','TB/U','BB/TB','BB Naik/Tidak Naik','Faktor Risiko','Rekomendasi'];
+  const data=children.filter(c=>['MERAH','KUNING'].includes(priorityForMonth(c,month)))
+    .sort((a,b)=>{
+      const ca=priorityForMonth(a,month), cb=priorityForMonth(b,month);
+      const oa=ca==='MERAH'?0:1, ob=cb==='MERAH'?0:1;
+      if(oa!==ob) return oa-ob;
+      const sa=Number(a.score??a.lastScore??0), sb=Number(b.score??b.lastScore??0);
+      if(sb!==sa) return sb-sa;
+      const dc=String(a.desa||'').localeCompare(String(b.desa||''),'id'); if(dc) return dc;
+      const pc=String(a.posyandu||'TIDAK TERCATAT').localeCompare(String(b.posyandu||'TIDAK TERCATAT'),'id'); if(pc) return pc;
+      return String(a.nama||'').localeCompare(String(b.nama||''),'id');
+    });
+  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\r?\n/g,' ');
+  const widths=[45,180,105,55,120,110,105,70,75,90,90,95,120,260,360];
+  let xml='<?xml version="1.0" encoding="UTF-8"?>';
+  xml+='<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
+  xml+='<Styles><Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0F766E" ss:Pattern="Solid"/><Alignment ss:Vertical="Center" ss:WrapText="1"/></Style><Style ss:ID="Cell"><Alignment ss:Vertical="Top" ss:WrapText="1"/></Style></Styles>';
+  xml+='<Worksheet ss:Name="Anak Prioritas"><Table ss:ExpandedColumnCount="'+headers.length+'" ss:ExpandedRowCount="'+(data.length+1)+'">';
+  widths.forEach(w=>xml+='<Column ss:Width="'+w+'"/>');
+  xml+='<Row ss:AutoFitHeight="0">'+headers.map(h=>'<Cell ss:StyleID="Header"><Data ss:Type="String">'+esc(h)+'</Data></Cell>').join('')+'</Row>';
+  data.forEach((c,i)=>{
+    const r=monthRecord(c,month), cat=priorityForMonth(c,month);
+    const vals=[i+1,c.nama,cat,c.score??c.lastScore??0,c.desa||'',c.posyandu||'TIDAK TERCATAT',r?.tanggal||c.lastDate||'',r?.bb??'',r?.tb??'',r?.bb_u??'',r?.tb_u??'',r?.bb_tb??'',r?.naik??'',faktorTampil(c),rekomendasiSingkat(c)];
+    xml+='<Row>'+vals.map((v,j)=>'<Cell ss:StyleID="Cell"><Data ss:Type="String">'+esc(v)+'</Data></Cell>').join('')+'</Row>';
+  });
+  xml+='</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane><ProtectContents>False</ProtectContents><ProtectObjects>False</ProtectObjects><DisplayPageBreaks>False</DisplayPageBreaks></WorksheetOptions></Worksheet></Workbook>';
+  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8;'});
+  const url=URL.createObjectURL(blob), a=document.createElement('a');
+  a.href=url; a.download='SI-MANIS_Anak_Prioritas_'+month+'_2026.xls'; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+
+function downloadPriorityCSV(){ downloadPriorityExcel(); }
 function selectedMonthEndDate(month){
   const monthNo={Jan:1,Feb:2,Mar:3,Apr:4,Mei:5,Jun:6,Jul:7,Agu:8,Sep:9}[month]||9;
   const lastDay=new Date(2026,monthNo,0);
@@ -1570,8 +1600,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   };
   const allPageEls=[...new Set(Object.values(pageEls).flat().filter(Boolean))];
   function showPage(page,updateHash=true){
+    page=pageEls[page]?page:'home';
     allPageEls.forEach(el=>el.style.display='none');
     (pageEls[page]||pageEls.home).forEach(el=>{if(el) el.style.display='';});
+    document.body.classList.remove('page-home','page-data','page-followup','page-education','page-about');
+    document.body.classList.add('page-'+page);
     links.forEach(x=>x.classList.toggle('active',x.dataset.page===page));
     if(updateHash) history.replaceState(null,'','#'+page);
     window.scrollTo({top:0,behavior:'smooth'});
@@ -1637,6 +1670,54 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
   .simanis-sidebar{display:none !important;}
 }
 </style>
+
+<style id="simanis-v19-mobile-infographic">
+/* v19 — mobile visual only: Beranda ringkas seperti infografis, Data & Peta tetap khusus daftar anak */
+@media(max-width:900px){
+  body{background:linear-gradient(180deg,#f2fbff 0%,#f8fcfb 100%);overflow-x:hidden}
+  main.wrap{padding:10px 12px 104px!important;margin:0!important;max-width:none!important}
+  .home-hero{margin:0 0 10px!important;border-radius:16px!important;border:1px solid #d8edf3!important;box-shadow:0 5px 16px rgba(20,72,105,.08)!important;background:#fff!important}
+  .home-hero img{display:block!important;width:100%!important;height:auto!important;max-height:none!important;min-height:0!important;object-fit:contain!important}
+  /* Ringkasan angka: 2 kolom di HP, lebih kecil dan padat */
+  #dashboardHome > .grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin:10px 0!important}
+  #dashboardHome > .grid .metric{min-height:88px!important;height:auto!important;padding:11px 12px!important;border-radius:15px!important;box-shadow:0 3px 12px rgba(20,72,105,.07)!important;display:flex!important;flex-direction:column!important;justify-content:center!important}
+  #dashboardHome > .grid .metric .label{font-size:11px!important;line-height:1.25!important;margin-bottom:5px!important}
+  #dashboardHome > .grid .metric .num{font-size:25px!important;line-height:1.05!important;font-weight:800!important}
+  #dashboardHome > .grid .metric:nth-child(7){grid-column:1/-1!important;min-height:68px!important}
+  #dashboardHome > .grid .metric:nth-child(7) .num{font-size:21px!important}
+  /* Analisis utama: kartu 2 kolom, bukan daftar panjang */
+  #dashboardHome > .chartgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;margin-top:10px!important}
+  #dashboardHome > .chartgrid > .card{min-width:0!important;margin:0!important;border-radius:15px!important;box-shadow:0 3px 12px rgba(20,72,105,.06)!important}
+  #dashboardHome > .chartgrid > .card:first-child{grid-column:1/-1!important}
+  #dashboardHome > .chartgrid summary{font-size:12px!important;line-height:1.3!important;padding:12px 11px!important;border-radius:13px!important}
+  #dashboardHome > .chartgrid summary:before{width:22px!important;height:22px!important;margin-right:6px!important}
+  #dashboardHome > .chartgrid .card:has(details) details>div{padding:8px!important}
+  #nutritionTrendCard,#geoTrendCard{border-radius:15px!important}
+  /* Data & Peta: jangan tampilkan ringkasan Beranda */
+  body.page-data #dashboardHome > .grid,
+  body.page-data #dashboardHome > .chartgrid,
+  body.page-data .home-hero{display:none!important}
+  /* daftar anak lebih mudah dibaca di HP */
+  #dataAnak{margin-top:4px!important}
+  #dataAnak .controls{grid-template-columns:1fr!important;gap:8px!important}
+  #dataAnak .card{border-radius:15px!important}
+  #dataAnak table{font-size:11px!important}
+  #dataAnak .list{grid-template-columns:1fr!important}
+  /* Tombol Excel besar dan mudah disentuh */
+  button[onclick*="downloadPriorityCSV"],button[onclick*="downloadPriorityExcel"]{width:100%!important;min-height:44px!important;font-size:12px!important;border-radius:12px!important}
+  .simanis-mobile-nav a{min-height:56px!important}
+  .simanis-mobile-nav a span{font-size:9px!important}
+}
+@media(max-width:420px){
+  main.wrap{padding-left:9px!important;padding-right:9px!important}
+  #dashboardHome > .grid{gap:7px!important}
+  #dashboardHome > .grid .metric{padding:10px!important;min-height:82px!important}
+  #dashboardHome > .grid .metric .label{font-size:10px!important}
+  #dashboardHome > .grid .metric .num{font-size:23px!important}
+  #dashboardHome > .grid .metric:nth-child(7) .num{font-size:19px!important}
+}
+</style>
+
 </body></html>
 <style id="simanis-v17-fixes">
 /* v17: modal/profile berada di atas sidebar desktop agar rekomendasi tidak tertutup */
