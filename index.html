@@ -155,6 +155,10 @@ table{width:100%}
 </style>
 
 
+<style id="followup-priority-mobile-style">
+.followup-priority-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:10px 0 14px}.fu-priority-card{border:1px solid #d5e5ec;border-radius:14px;background:#fff;padding:14px;box-shadow:0 2px 8px rgba(15,73,96,.05)}.fu-priority-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.fu-priority-name{font-weight:800;color:#123f55;font-size:15px}.fu-priority-meta{font-size:12px;color:#5b7485;line-height:1.45;margin-top:3px}.fu-score{border-radius:999px;padding:8px 11px;font-weight:800;white-space:nowrap;font-size:12px}.fu-score.red{background:#fee2e2;color:#b91c1c}.fu-score.yellow{background:#fef3c7;color:#a16207}.fu-chips{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}.fu-chip{font-size:11px;background:#eef4f6;color:#38576a;border-radius:999px;padding:5px 8px}.fu-rec{font-size:12px;color:#4b6473;line-height:1.45}.fu-rec b{color:#214b61}.fu-open{width:100%;margin-top:10px!important}
+@media(max-width:700px){.followup-priority-list{grid-template-columns:1fr;gap:10px}.fu-priority-card{padding:12px}.fu-priority-name{font-size:14px}.fu-score{font-size:11px;padding:7px 9px}.fu-rec{font-size:12px}}
+</style>
 <style id="followup-dashboard-style">
 .followup-dashboard{margin-top:16px}.followup-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.followup-kpi{background:#f7faf9;border:1px solid var(--line);border-radius:12px;padding:12px;min-width:0}.followup-kpi span{display:block;font-size:11px;color:var(--muted)}.followup-kpi b{display:block;font-size:23px;margin-top:5px;color:var(--primary2)}.followup-table-wrap{overflow:auto;max-width:100%}.followup-table{width:100%;border-collapse:collapse;font-size:12px;min-width:720px}.followup-table th,.followup-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.followup-table th{background:#f7faf9;position:sticky;top:0}.followup-empty{font-size:12px;color:var(--muted);padding:12px;background:#f8fafc;border-radius:10px}
 @media(max-width:700px){.followup-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -204,6 +208,17 @@ table{width:100%}
 .about-note h2{margin:0 0 7px;color:#0f766e;font-size:18px}
 .about-note p{margin:0;color:#334e68;font-size:13px;line-height:1.65}
 @media(max-width:700px){.simanis-about-page{padding:10px!important}.about-image-wrap{border-radius:12px}.about-note{padding:12px 14px}.about-note h2{font-size:16px}.about-note p{font-size:12px}}
+</style>
+
+<style id="simanis-v22-followup-downloads">
+@media(max-width:900px){
+  body.page-followup .followup-downloads{grid-template-columns:1fr!important;gap:9px!important;margin:12px 0 16px!important}
+  body.page-followup .followup-downloads button{width:100%!important;min-height:50px!important;font-size:14px!important;border-radius:14px!important;padding:11px 12px!important}
+  body.page-followup .followup-kpi-primary small{font-size:11px!important;line-height:1.35!important}
+}
+@media(min-width:901px){
+  body.page-followup .followup-downloads button{min-height:46px!important}
+}
 </style>
 </head>
 <body>
@@ -290,7 +305,6 @@ table{width:100%}
     </div>
     <div id="priorityMapSummary" class="priority-map-note" aria-live="polite"></div>
     <div id="priorityMapResult" class="priority-map"></div>
-    <div style="display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 4px"><button class="btn2" type="button" onclick="downloadPriorityCSV()">⬇️ Download Anak Prioritas (Excel)</button><button class="btn2" type="button" onclick="downloadUnmeasuredCSV()">⬇️ Download Anak Belum Diukur Bulan Ini (CSV)</button></div>
 <div class="priority-legend"><span>🔴 Prioritas relatif 1</span><span>🟡 Prioritas relatif 2</span><span>🟢 Prioritas relatif berikutnya</span><span>⚪ Belum ada data</span></div>
     <p class="priority-map-note">Catatan: tampilan ini merupakan peta skematis berbasis desa dan Posyandu, bukan peta geografis atau batas administrasi. Urutan prioritas bersifat relatif pada pilihan indikator dan bulan, bukan kategori klinis baru. Klik kartu Posyandu untuk memfilter daftar anak pada Posyandu tersebut.</p>
   </details>
@@ -349,10 +363,22 @@ table{width:100%}
   <details open>
     <summary style="cursor:pointer;font-weight:800;color:var(--primary2);font-size:16px">📝 Dashboard Tindak Lanjut</summary>
     <p class="help" style="margin-top:10px">Daftar tindak lanjut dan anak yang perlu dipantau berdasarkan hasil analisis SI-MANIS.</p>
-    <div class="followup-kpis">
-      <div class="followup-kpi followup-kpi-primary"><span>Anak perlu dipantau</span><b id="fuNeed">0</b></div>
+    <div class="followup-month-filter" style="margin:12px 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <label for="fuMonthFilter" style="font-weight:700;color:#36566b">📅 Bulan pengukuran terakhir</label>
+      <select id="fuMonthFilter" onchange="renderFollowupDashboard()" style="min-width:170px;padding:9px 12px;border:1px solid #cfe2ec;border-radius:10px;background:#fff;font-weight:600;color:#24485d">
+        <option value="Jan">Januari 2026</option><option value="Feb">Februari 2026</option><option value="Mar">Maret 2026</option><option value="Apr">April 2026</option><option value="Mei">Mei 2026</option><option value="Jun">Juni 2026</option><option value="Jul">Juli 2026</option><option value="Agu">Agustus 2026</option><option value="Sep" selected>September 2026</option>
+      </select>
     </div>
-    <h3 style="font-size:14px;margin:12px 0 8px">Riwayat tindak lanjut yang tersimpan</h3>
+    <div class="followup-kpis followup-kpis-priority">
+      <div class="followup-kpi followup-kpi-total"><span>🎯 Total anak perlu tindak lanjut</span><b id="fuNeed">0</b><small style="display:block;margin-top:4px;opacity:.78">Gabungan anak kategori MERAH dan KUNING pada bulan pengukuran yang dipilih.</small></div>
+      <div class="followup-kpi followup-kpi-red"><span>🔴 Prioritas tinggi (MERAH)</span><b id="fuRed">0</b><small style="display:block;margin-top:4px;opacity:.78">Perlu perhatian dan tindak lanjut lebih segera.</small></div>
+      <div class="followup-kpi followup-kpi-yellow"><span>🟡 Perlu dipantau (KUNING)</span><b id="fuYellow">0</b><small style="display:block;margin-top:4px;opacity:.78">Perlu pemantauan dan tindak lanjut sesuai kondisi.</small></div>
+    </div>
+    <div class="followup-downloads" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0">
+      <button class="btn2" type="button" onclick="downloadPriorityCSV()">⬇️ Download Anak Prioritas (Excel)</button>
+      <button class="btn2" type="button" onclick="downloadUnmeasuredCSV()">⬇️ Download Anak Belum Diukur Bulan Ini (CSV)</button>
+    </div>
+    <h3 style="font-size:14px;margin:16px 0 8px">Riwayat tindak lanjut yang tersimpan</h3>
     <div id="followupDashboardRows" class="followup-table-wrap"><div class="followup-empty">Belum ada formulir tindak lanjut yang tersimpan pada perangkat ini.</div></div>
     <div class="fq-actions"><button class="btn2" type="button" onclick="renderFollowupDashboard()">Perbarui rekap</button><button class="btn" type="button" onclick="downloadFollowupCSV()">⬇️ Unduh data tindak lanjut (CSV)</button></div>
   </details>
@@ -934,24 +960,60 @@ function downloadFollowupCSV(){
 
 
 function renderFollowupDashboard(){
- const total=children.length; let filled=0,pending=0; const rows=[];
- const need=children.filter(c=>String(c.kategori||"").toUpperCase()==="KUNING").length;
+ const fuMonth=document.getElementById('fuMonthFilter')?.value || 'Sep';
+ const monthNames={Jan:'Januari',Feb:'Februari',Mar:'Maret',Apr:'April',Mei:'Mei',Jun:'Juni',Jul:'Juli',Agu:'Agustus',Sep:'September'};
+ const monthLabel=(monthNames[fuMonth]||fuMonth)+' 2026';
+ // Samakan dengan Data & Peta: gunakan data pengukuran pada bulan terpilih dan hitung kategori dari logika monthCategory.
+ const measured=children.filter(c=>!!monthRecord(c,fuMonth));
+ const eligible=measured.filter(c=>['MERAH','KUNING'].includes(String(priorityForMonth(c,fuMonth)||'').toUpperCase()));
+ const red=eligible.filter(c=>String(priorityForMonth(c,fuMonth)).toUpperCase()==='MERAH').length;
+ const yellow=eligible.filter(c=>String(priorityForMonth(c,fuMonth)).toUpperCase()==='KUNING').length;
+ const need=red+yellow;
+ const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v).toLocaleString('id-ID')};
+ set('fuNeed',need); set('fuRed',red); set('fuYellow',yellow);
+ const priorityTarget=document.getElementById('followupPriorityRows');
+ if(priorityTarget){
+   const ordered=eligible.slice().sort((a,b)=>{
+     const ca=String(priorityForMonth(a,fuMonth)), cb=String(priorityForMonth(b,fuMonth));
+     const oa=ca==='MERAH'?0:1, ob=cb==='MERAH'?0:1;
+     if(oa!==ob)return oa-ob;
+     const sa=Number(monthScore(a,fuMonth)); const sb=Number(monthScore(b,fuMonth));
+     if(sb!==sa)return sb-sa;
+     return String(a.nama||'').localeCompare(String(b.nama||''));
+   });
+   const visible=ordered.slice(0,20);
+   const monthShort=fuMonth;
+   const cards=visible.map(c=>{
+     const cat=String(priorityForMonth(c,fuMonth));
+     const score=monthScore(c,fuMonth);
+     const st=monthStatus(c,fuMonth);
+     const rec=monthRecord(c,fuMonth);
+     const idx=children.indexOf(c);
+     const factor=isTidakDiukur(c,fuMonth)?'Tidak ada pengukuran pada bulan tersebut':faktorTampil(c);
+     const recommendation=isTidakDiukur(c,fuMonth)?'Lakukan penjangkauan/kunjungan dan pengukuran.':rekomendasiSingkat(c);
+     return `<article class="fu-priority-card"><div class="fu-priority-top"><div><div class="fu-priority-name">${esc(c.nama)}</div><div class="fu-priority-meta">${esc(c.jk||'')} • ${esc(c.posyandu||'TIDAK TERCATAT')} • ${esc(c.desa||'-')}<br>🎂 ${esc(dobText(c))} • ${esc(ageText(c))}</div></div><span class="fu-score ${cat==='MERAH'?'red':'yellow'}">${esc(cat)} • skor ${esc(score)}</span></div><div class="fu-chips"><span class="fu-chip">BB/U: ${esc(st.bb_u||'-')}</span><span class="fu-chip">TB/U: ${esc(st.tb_u||'-')}</span><span class="fu-chip">BB/TB: ${esc(st.bb_tb||'-')}</span><span class="fu-chip">Bulan: ${esc(monthLabel)}</span></div><div class="fu-rec"><b>Faktor:</b> ${esc(factor)}</div><div class="fu-rec" style="margin-top:4px"><b>Rekomendasi:</b> ${esc(recommendation)}</div><button class="btn fu-open" type="button" onclick="openProfile(${idx})">Profil dan Tindak Lanjut →</button></article>`;
+   }).join('');
+   priorityTarget.innerHTML=cards || `<div class="followup-empty">Tidak ada anak kategori MERAH/KUNING pada ${esc(monthLabel)}.</div>`;
+   if(ordered.length>20){priorityTarget.innerHTML += `<div class="followup-empty" style="grid-column:1/-1">Menampilkan 20 dari ${ordered.length} anak prioritas. Gunakan <b>Data &amp; Peta</b> untuk pencarian dan filter lebih lengkap.</div>`;}
+ }
+ // Riwayat tindak lanjut tetap hanya menampilkan formulir yang tersimpan untuk anak yang pengukuran terakhirnya berada pada bulan terpilih.
+ let filled=0,pending=0; const rows=[];
  children.forEach(c=>{
-  let d=null; try{d=JSON.parse(localStorage.getItem(followupStorageKey(c))||"null");}catch(e){}
-  if(!d || typeof d!=="object") return;
-  filled++; if(d.tindakan==="Belum dilakukan") pending++;
+  let d=null; try{d=JSON.parse(localStorage.getItem(followupStorageKey(c))||'null');}catch(e){}
+  if(!d || typeof d!=='object') return;
+  const lastRec=monthRecord(c,fuMonth);
+  if(!lastRec || String(c.lastMonth||'')!==fuMonth) return;
+  filled++; if(d.tindakan==='Belum dilakukan') pending++;
   rows.push({c,d});
  });
- const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v).toLocaleString("id-ID")};
- set("fuNeed",need);
- set("fuTotal",total);set("fuFilled",filled);set("fuMissing",Math.max(0,total-filled));set("fuPending",pending);
- const target=document.getElementById("followupDashboardRows"); if(!target)return;
- if(!rows.length){target.innerHTML='<div class="followup-empty">Belum ada formulir tindak lanjut yang tersimpan pada perangkat ini.</div>';return;}
- rows.sort((a,b)=>String(b.d.tanggal||"").localeCompare(String(a.d.tanggal||""))||String(a.c.nama||"").localeCompare(String(b.c.nama||"")));
- const safe=v=>esc(v==null||v===""?"—":String(v));
- target.innerHTML='<table class="followup-table"><thead><tr><th>Nama anak</th><th>Desa / Posyandu</th><th>Tanggal</th><th>Petugas</th><th>Tindakan</th><th>Catatan</th></tr></thead><tbody>'+rows.map(({c,d})=>`<tr><td><b>${safe(c.nama)}</b></td><td>${safe(c.desa)}<br>${safe(c.posyandu)}</td><td>${safe(d.tanggal)}</td><td>${safe(d.petugas)}</td><td>${safe(d.tindakan)}</td><td>${safe(d.catatan)}</td></tr>`).join('')+'</tbody></table>';
+ const set2=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v).toLocaleString('id-ID')};
+ set2('fuTotal',measured.length);set2('fuFilled',filled);set2('fuMissing',Math.max(0,eligible.length-filled));set2('fuPending',pending);
+ const target=document.getElementById('followupDashboardRows'); if(!target)return;
+ if(!rows.length){target.innerHTML='<div class="followup-empty">Belum ada formulir tindak lanjut yang tersimpan untuk anak dengan pengukuran terakhir '+monthLabel+'.</div>';return;}
+ rows.sort((a,b)=>String(b.d.tanggal||'').localeCompare(String(a.d.tanggal||''))||String(a.c.nama||'').localeCompare(String(b.c.nama||'')));
+ const safe=v=>esc(v==null||v===''?'—':String(v));
+ target.innerHTML='<table class="followup-table"><thead><tr><th>Nama anak</th><th>Desa / Posyandu</th><th>Pengukuran terakhir</th><th>Tanggal tindak lanjut</th><th>Petugas</th><th>Tindakan</th><th>Catatan</th></tr></thead><tbody>'+rows.map(({c,d})=>`<tr><td><b>${safe(c.nama)}</b></td><td>${safe(c.desa)}<br>${safe(c.posyandu)}</td><td>${safe(c.lastDate||monthLabel)}</td><td>${safe(d.tanggal)}</td><td>${safe(d.petugas)}</td><td>${safe(d.tindakan)}</td><td>${safe(d.catatan)}</td></tr>`).join('')+'</tbody></table>';
 }
-
 
 function renderFollowupHistory(c){
  const key=followupStorageKey(c); let d=null;
@@ -1520,6 +1582,8 @@ function downloadCSV(filename, rows){
   const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 function selectedDashboardMonth(){
+  const fu=document.getElementById('fuMonthFilter');
+  if(fu && fu.value) return fu.value;
   const el=document.getElementById('month') || document.getElementById('priorityMonth');
   return el?.value || 'Sep';
 }
@@ -1741,16 +1805,27 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
   body.page-followup #followupDashboard .followup-table td:last-child{border-bottom:0!important;}
   body.page-followup #followupDashboard .followup-table td:nth-child(1):before{content:'Nama anak';}
   body.page-followup #followupDashboard .followup-table td:nth-child(2):before{content:'Desa / Posyandu';}
-  body.page-followup #followupDashboard .followup-table td:nth-child(3):before{content:'Tanggal';}
-  body.page-followup #followupDashboard .followup-table td:nth-child(4):before{content:'Petugas';}
-  body.page-followup #followupDashboard .followup-table td:nth-child(5):before{content:'Tindakan';}
-  body.page-followup #followupDashboard .followup-table td:nth-child(6):before{content:'Catatan';}
+  body.page-followup #followupDashboard .followup-table td:nth-child(3):before{content:'Pengukuran terakhir';}
+  body.page-followup #followupDashboard .followup-table td:nth-child(4):before{content:'Tanggal tindak lanjut';}
+  body.page-followup #followupDashboard .followup-table td:nth-child(5):before{content:'Petugas';}
+  body.page-followup #followupDashboard .followup-table td:nth-child(6):before{content:'Tindakan';}
+  body.page-followup #followupDashboard .followup-table td:nth-child(7):before{content:'Catatan';}
   body.page-followup #followupDashboard .followup-table td:before{font-weight:700;color:#64748b;font-size:10px;}
   body.page-followup #followupDashboard .fq-actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important;margin-top:12px!important;}
   body.page-followup #followupDashboard .fq-actions button{width:100%!important;min-height:44px!important;border-radius:12px!important;}
 }
 </style>
 
+
+<style id="simanis-v24-followup-month-filter">
+@media(max-width:900px){
+  body.page-followup #followupDashboard .followup-month-filter{display:block!important;margin:12px 0 14px!important;}
+  body.page-followup #followupDashboard .followup-month-filter label{display:block!important;font-size:12px!important;margin-bottom:6px!important;}
+  body.page-followup #followupDashboard #fuMonthFilter{width:100%!important;min-height:42px!important;font-size:13px!important;}
+  body.page-followup #followupDashboard .followup-kpi-total b{font-size:32px!important;}
+  body.page-followup #followupDashboard .followup-kpi-red b,body.page-followup #followupDashboard .followup-kpi-yellow b{font-size:27px!important;}
+}
+</style>
 </body></html>
 <style id="simanis-v17-fixes">
 /* v17: modal/profile berada di atas sidebar desktop agar rekomendasi tidak tertutup */
@@ -1782,9 +1857,19 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
   body.page-followup #followupDashboard details{display:block!important;}
   body.page-followup #followupDashboard summary{cursor:default!important;list-style:none!important;}
   body.page-followup #followupDashboard summary::-webkit-details-marker{display:none!important;}
+  #followupDashboard .followup-kpis-priority{display:grid!important;grid-template-columns:1fr 1fr!important;gap:10px!important;margin:12px 0 16px!important;}
+  #followupDashboard .followup-kpi-total{grid-column:1 / -1!important;width:100%!important;min-height:88px!important;border-radius:16px!important;padding:14px!important;text-align:center!important;background:linear-gradient(135deg,#eef9ff,#e8f5ff)!important;border:1px solid #b9dff5!important;}
+  #followupDashboard .followup-kpi-red,#followupDashboard .followup-kpi-yellow{min-height:88px!important;border-radius:16px!important;padding:13px!important;text-align:center!important;}
+  #followupDashboard .followup-kpi-red{background:#fff0f0!important;border:1px solid #f3b5b5!important;}
+  #followupDashboard .followup-kpi-yellow{background:#fff8df!important;border:1px solid #f4d98a!important;}
+  #followupDashboard .followup-kpi-total span,#followupDashboard .followup-kpi-red span,#followupDashboard .followup-kpi-yellow span{display:block!important;font-size:13px!important;margin-bottom:3px!important;}
+  #followupDashboard .followup-kpi-total b{display:block!important;font-size:34px!important;line-height:1.05!important;color:#0f766e!important;}
+  #followupDashboard .followup-kpi-red b{display:block!important;font-size:30px!important;line-height:1.05!important;color:#b91c1c!important;}
+  #followupDashboard .followup-kpi-yellow b{display:block!important;font-size:30px!important;line-height:1.05!important;color:#a16207!important;}
+  #followupDashboard .followup-kpi-total small,#followupDashboard .followup-kpi-red small,#followupDashboard .followup-kpi-yellow small{font-size:11px!important;line-height:1.25!important;}
   #followupDashboard .followup-kpis{display:block!important;margin:12px 0 16px!important;}
-  #followupDashboard .followup-kpi-primary{width:100%!important;min-height:96px!important;border-radius:16px!important;padding:16px!important;text-align:center!important;background:linear-gradient(135deg,#fff8df,#fff1c7)!important;border:1px solid #f4d98a!important;}
-  #followupDashboard .followup-kpi-primary span{display:block!important;font-size:15px!important;color:#755a00!important;margin-bottom:4px!important;}
-  #followupDashboard .followup-kpi-primary b{display:block!important;font-size:38px!important;line-height:1.05!important;color:#b56b00!important;}
+  #followupDashboard .followup-kpi-primary{width:100%!important;min-height:96px!important;border-radius:16px!important;padding:16px!important;text-align:center!important;}
+  #followupDashboard .followup-kpi-primary span{display:block!important;font-size:15px!important;margin-bottom:4px!important;}
+  #followupDashboard .followup-kpi-primary b{display:block!important;font-size:34px!important;line-height:1.05!important;}
 }
 </style>
