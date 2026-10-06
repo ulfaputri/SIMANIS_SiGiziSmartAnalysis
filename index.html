@@ -136,7 +136,8 @@ table{width:100%}
 .coverage-detail{font-size:11px;line-height:1.6;margin-top:7px;color:var(--ink)}
 .coverage-detail .muted{color:var(--muted)}
 @media(max-width:700px){.coverage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-</style>\n
+</style>
+
 <style id="followup-questionnaire-style">
 .followup-form{margin:14px 0;border:1px solid #b7e0db;background:#f5fcfa;border-radius:14px;padding:14px}
 .followup-form h3{margin:0 0 5px;color:#115e59;font-size:16px}
@@ -214,6 +215,13 @@ table{width:100%}
     <a href="#" data-page="education">♧<span>Edukasi Kader</span></a>
     <a href="#" data-page="about">ⓘ<span>Tentang</span></a>
   </nav>
+</div>
+<div class="simanis-mobile-nav" aria-label="Navigasi SI-MANIS">
+  <a href="#" data-page="home" class="active">🏠<span>Beranda</span></a>
+  <a href="#" data-page="data">👥<span>Data &amp; Peta</span></a>
+  <a href="#" data-page="followup">📋<span>Tindak Lanjut</span></a>
+  <a href="#" data-page="education">📖<span>Edukasi</span></a>
+  <a href="#" data-page="about">ℹ️<span>Tentang</span></a>
 </div>
 <main class="wrap" id="dashboardHome">
 <section class="home-hero" aria-label="Beranda SI-MANIS">
@@ -1558,7 +1566,7 @@ function downloadUnmeasuredCSV(){
 
 // SI-MANIS page navigation: tampilan berubah per menu, fitur/data/logic tetap dipertahankan.
 document.addEventListener('DOMContentLoaded',()=>{
-  const links=[...document.querySelectorAll('.simanis-side-nav a[data-page]')];
+  const links=[...document.querySelectorAll('[data-page]')];
   const homeEls=[document.querySelector('.home-hero'),document.querySelector('.wrap > .grid'),document.querySelector('.wrap > .chartgrid'),document.getElementById('nutritionTrendCard'),document.getElementById('geoTrendCard')];
   const pageEls={
     home:homeEls,
@@ -1610,4 +1618,30 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
   .simanis-page-card{min-height:420px;border-radius:20px;box-shadow:var(--dash-shadow)}
 }
 @media(max-width:900px){.home-hero{border-radius:14px;overflow:hidden;margin-bottom:10px}.home-hero img{width:100%;height:auto}.chartgrid{grid-template-columns:1fr}.simanis-page-card{border-radius:16px}}
-</style></body></html>
+
+<style id="simanis-mobile-navigation-fix">
+.simanis-mobile-nav{display:none}
+@media(max-width:900px){
+  header{display:none!important}
+  .simanis-mobile-nav{position:fixed;left:0;right:0;bottom:0;z-index:2000;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:7px 5px calc(7px + env(safe-area-inset-bottom));background:rgba(255,255,255,.97);border-top:1px solid #d7e8ef;box-shadow:0 -6px 20px rgba(20,72,105,.10);backdrop-filter:blur(10px)}
+  .simanis-mobile-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;padding:5px 2px;border-radius:11px;text-decoration:none;color:#587080;font-size:18px;line-height:1}
+  .simanis-mobile-nav a span{font-size:9px;font-weight:700;line-height:1.1;white-space:nowrap}
+  .simanis-mobile-nav a.active{background:linear-gradient(135deg,#1687e8,#0f766e);color:#fff}
+  main.wrap{padding-bottom:92px!important}
+  .home-hero img{object-fit:contain!important;object-position:center!important;height:auto!important;min-height:0!important;max-height:none!important}
+}
+</style>
+
+<style id="simanis-v16-desktop-nav-fix">
+/* v16: pastikan navigasi HP hanya tampil di HP; desktop tetap memakai sidebar */
+.simanis-mobile-nav{display:none !important;}
+@media (min-width:901px){
+  .simanis-mobile-nav{display:none !important;position:fixed !important;left:-99999px !important;visibility:hidden !important;}
+  .simanis-sidebar{display:flex !important;}
+}
+@media (max-width:900px){
+  .simanis-mobile-nav{display:grid !important;left:0 !important;visibility:visible !important;}
+  .simanis-sidebar{display:none !important;}
+}
+</style>
+</body></html>
