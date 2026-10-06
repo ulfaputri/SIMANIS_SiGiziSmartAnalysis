@@ -346,14 +346,11 @@ table{width:100%}
 
 
 <section class="section card followup-dashboard" id="followupDashboard">
-  <details>
-    <summary style="cursor:pointer;font-weight:800;color:var(--primary2);font-size:16px">📝 Dashboard Tindak Lanjut (klik untuk membuka)</summary>
-    <p class="help" style="margin-top:10px">Rekap formulir tindak lanjut yang tersimpan pada browser/perangkat ini. Data belum tersinkron otomatis ke perangkat lain.</p>
+  <details open>
+    <summary style="cursor:pointer;font-weight:800;color:var(--primary2);font-size:16px">📝 Dashboard Tindak Lanjut</summary>
+    <p class="help" style="margin-top:10px">Daftar tindak lanjut dan anak yang perlu dipantau berdasarkan hasil analisis SI-MANIS.</p>
     <div class="followup-kpis">
-      <div class="followup-kpi"><span>Total anak dalam data</span><b id="fuTotal">0</b></div>
-      <div class="followup-kpi"><span>Formulir terisi</span><b id="fuFilled">0</b></div>
-      <div class="followup-kpi"><span>Belum mengisi</span><b id="fuMissing">0</b></div>
-      <div class="followup-kpi"><span>Tindakan belum dilakukan</span><b id="fuPending">0</b></div>
+      <div class="followup-kpi followup-kpi-primary"><span>Anak perlu dipantau</span><b id="fuNeed">0</b></div>
     </div>
     <h3 style="font-size:14px;margin:12px 0 8px">Riwayat tindak lanjut yang tersimpan</h3>
     <div id="followupDashboardRows" class="followup-table-wrap"><div class="followup-empty">Belum ada formulir tindak lanjut yang tersimpan pada perangkat ini.</div></div>
@@ -938,6 +935,7 @@ function downloadFollowupCSV(){
 
 function renderFollowupDashboard(){
  const total=children.length; let filled=0,pending=0; const rows=[];
+ const need=children.filter(c=>String(c.kategori||"").toUpperCase()==="KUNING").length;
  children.forEach(c=>{
   let d=null; try{d=JSON.parse(localStorage.getItem(followupStorageKey(c))||"null");}catch(e){}
   if(!d || typeof d!=="object") return;
@@ -945,6 +943,7 @@ function renderFollowupDashboard(){
   rows.push({c,d});
  });
  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=Number(v).toLocaleString("id-ID")};
+ set("fuNeed",need);
  set("fuTotal",total);set("fuFilled",filled);set("fuMissing",Math.max(0,total-filled));set("fuPending",pending);
  const target=document.getElementById("followupDashboardRows"); if(!target)return;
  if(!rows.length){target.innerHTML='<div class="followup-empty">Belum ada formulir tindak lanjut yang tersimpan pada perangkat ini.</div>';return;}
@@ -1725,4 +1724,33 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
 .simanis-sidebar{z-index:1000!important}
 .simanis-mobile-nav{z-index:2000!important}
 #month{min-width:145px}
+</style>
+
+<style id="simanis-v20-mobile-page-separation">
+@media(max-width:900px){
+  /* Ringkasan dashboard hanya untuk Beranda. Jangan tampilkan di menu lain. */
+  body.page-data #dashboardHome > .grid,
+  body.page-data #dashboardHome > .chartgrid,
+  body.page-data .home-hero,
+  body.page-followup #dashboardHome > .grid,
+  body.page-followup #dashboardHome > .chartgrid,
+  body.page-followup .home-hero,
+  body.page-education #dashboardHome > .grid,
+  body.page-education #dashboardHome > .chartgrid,
+  body.page-education .home-hero,
+  body.page-about #dashboardHome > .grid,
+  body.page-about #dashboardHome > .chartgrid,
+  body.page-about .home-hero{
+    display:none!important;
+  }
+
+  /* Tindak Lanjut: langsung terbuka dan fokus pada jumlah anak yang perlu dipantau. */
+  body.page-followup #followupDashboard details{display:block!important;}
+  body.page-followup #followupDashboard summary{cursor:default!important;list-style:none!important;}
+  body.page-followup #followupDashboard summary::-webkit-details-marker{display:none!important;}
+  #followupDashboard .followup-kpis{display:block!important;margin:12px 0 16px!important;}
+  #followupDashboard .followup-kpi-primary{width:100%!important;min-height:96px!important;border-radius:16px!important;padding:16px!important;text-align:center!important;background:linear-gradient(135deg,#fff8df,#fff1c7)!important;border:1px solid #f4d98a!important;}
+  #followupDashboard .followup-kpi-primary span{display:block!important;font-size:15px!important;color:#755a00!important;margin-bottom:4px!important;}
+  #followupDashboard .followup-kpi-primary b{display:block!important;font-size:38px!important;line-height:1.05!important;color:#b56b00!important;}
+}
 </style>
