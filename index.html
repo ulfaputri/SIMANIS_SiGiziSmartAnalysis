@@ -113,7 +113,10 @@ table{width:100%}
   main,.container,.content,.dashboard,.app{width:100%!important;max-width:100%!important;padding-left:10px!important;padding-right:10px!important}
   .grid,.cards,.stats,.metrics,.filters,.toolbar{grid-template-columns:1fr!important;display:grid!important;gap:10px!important}
   .row{flex-wrap:wrap!important}
-  .card,.panel,.section,.profile-card,.recommendation,.identity-card{padding:12px!important;border-radius:12px!important}
+  .card,.panel,.section,.profile-card,.recommendation,.identity-card{padding:10px!important;border-radius:12px!important}
+  .metric{min-height:68px!important;padding:10px!important}
+  .metric .label{font-size:11px!important;line-height:1.2!important}
+  .metric .num,.metric .num[style*="font-size"]{font-size:20px!important;line-height:1.05!important;margin-top:4px!important}
   h1{font-size:20px!important;line-height:1.25}
   h2{font-size:17px!important}
   h3{font-size:15px!important}
@@ -320,7 +323,7 @@ table{width:100%}
         <option value="BB/TB|Outlier">BB/TB — Outlier</option>
       </optgroup>
     </select>
-    <select id="month" onchange="apply()"><option value="">Semua Bulan</option><option value="Jan">Januari</option><option value="Feb">Februari</option><option value="Mar">Maret</option><option value="Apr">April</option><option value="Mei">Mei</option><option value="Jun">Juni</option><option value="Jul">Juli</option><option value="Agu">Agustus</option><option value="Sep">September</option></select>
+    <select id="month" onchange="apply()"><option value="">Semua Bulan</option><option value="Jan">Januari 2026</option><option value="Feb">Februari 2026</option><option value="Mar">Maret 2026</option><option value="Apr">April 2026</option><option value="Mei">Mei 2026</option><option value="Jun">Juni 2026</option><option value="Jul">Juli 2026</option><option value="Agu">Agustus 2026</option><option value="Sep">September 2026</option></select>
     <select id="ageFilter" onchange="apply()" aria-label="Filter umur"><option value="">Semua umur</option><option value="0-5">0–5 Bulan</option><option value="6">6 Bulan</option><option value="0-11">0–11 Bulan</option><option value="0-23">0–23 Bulan</option><option value="6-11">6–11 Bulan</option><option value="6-23">6–23 Bulan</option><option value="12-23">12–23 Bulan</option><option value="6-59">6–59 Bulan</option><option value="12-59">12–59 Bulan</option><option value="24-59">24–59 Bulan</option><option value="60+">&gt; 59 Bulan</option></select>
     <select id="growthFilter" onchange="apply()"><option value="">Semua kondisi pertumbuhan</option><option value="2T">BB tidak naik 2 kali berturut-turut (2T)</option><option value="T">BB tidak naik 1 kali terakhir (T)</option></select>
     <select id="pos" onchange="apply()"><option value="">Semua Posyandu</option></select>
@@ -608,68 +611,58 @@ function juknisTatalaksana(c){
  const stunting=tu==="pendek" || tu==="sangat pendek";
  const risikoLebih=bt.includes("risiko gizi lebih") || bt.includes("gizi lebih") || bt.includes("obesitas") || bu.includes("risiko lebih");
 
- // Rincian mengikuti Juknis PMT Lokal 2025. Bagian ini sengaja dipertahankan lengkap:
- // durasi PMT, pemeriksaan red flag/penyakit penyerta, pemantauan BB, PB/TB,
- // tindak lanjut minggu pertama, minggu kedua/14 hari, dan rujukan.
+ // Tampilan diringkas; logika penentuan kondisi tetap dipertahankan.
  if(giziBuruk){
    utama.push("Gizi buruk");
-   out.push("Lakukan pemeriksaan dan tata laksana oleh tenaga kesehatan sesuai kondisi klinis; jangan menggunakan PMT lokal 14/28/56 hari sebagai pengganti tata laksana gizi buruk.");
-   out.push("Periksa tanda bahaya (red flag) dan penyakit penyerta oleh dokter serta rujuk sesuai kondisi dan kemampuan Puskesmas.");
-   out.push("Lakukan pemantauan berat badan (BB), panjang/tinggi badan (PB/TB), dan kondisi klinis sesuai hasil pemeriksaan tenaga kesehatan.");
+   out.push("Pemeriksaan dan tata laksana oleh tenaga kesehatan sesuai kondisi klinis.");
+   out.push("Periksa red flag/penyakit penyerta; rujuk sesuai kondisi dan kemampuan Puskesmas.");
+   out.push("Pantau BB, PB/TB, dan kondisi klinis.");
  } else if(giziKurang){
    utama.push("Gizi kurang" + (stunting ? " dengan/ tanpa stunting" : ""));
-   out.push("Di Puskesmas, konfirmasi status gizi oleh penanggung jawab/anggota klaster 2 (dokter, tenaga gizi, bidan/perawat).");
-   out.push("Lakukan pemeriksaan red flag/penyakit penyerta oleh dokter.");
-   out.push("Jika tidak ada red flag/penyakit penyerta: PMT lokal 56 hari; stimulasi perkembangan; edukasi dan konseling pemberian makan serta pencegahan infeksi; pemantauan BB 1 minggu.");
-   out.push("Jika ada red flag/penyakit penyerta yang dapat ditangani di Puskesmas: tata laksana red flag/penyakit penyerta, lanjutkan PMT lokal 56 hari, stimulasi perkembangan, edukasi dan konseling pemberian makan serta pencegahan infeksi, dan pemantauan BB 1 minggu.");
-   out.push("Jika red flag/penyakit penyerta tidak dapat ditangani di Puskesmas: rujuk ke RS.");
-   out.push("Jika pada minggu pertama BB naik adekuat: lanjutkan PMT lokal, edukasi dan konseling pemberian makan serta pencegahan infeksi, stimulasi perkembangan, dan lakukan pemantauan BB serta PB/TB pada minggu kedua.");
-   out.push("Jika pada minggu pertama BB tidak naik: lakukan pemeriksaan red flag/penyakit penyerta oleh dokter; bila tidak ada atau dapat ditangani di Puskesmas, lanjutkan PMT lokal dan pantau BB serta PB/TB pada minggu kedua; bila tidak dapat ditangani, rujuk ke RS.");
-   out.push("Pada minggu kedua (14 hari): jika BB tidak naik, rujuk ke RS.");
-   out.push("Jika BB naik adekuat dan tidak stunting: lanjutkan PMT lokal serta pemantauan BB dan PB/TB minggu berikutnya; tata laksana selesai apabila mencapai kriteria keberhasilan.");
-   out.push("Jika BB naik adekuat tetapi disertai stunting: rujuk ke RS setelah selesai 1 siklus PMT lokal untuk tata laksana stunting lebih lanjut.");
+   out.push("Konfirmasi status gizi di Puskesmas.");
+   out.push("Periksa red flag/penyakit penyerta oleh dokter.");
+   out.push("Tidak ada red flag: PMT Lokal 56 hari + edukasi/konseling + stimulasi perkembangan + pantau BB minggu 1.");
+   out.push("Red flag dapat ditangani: tata laksana penyerta + lanjutkan PMT Lokal 56 hari + pantau.");
+   out.push("Red flag tidak dapat ditangani di Puskesmas: rujuk ke RS.");
+   out.push("BB naik minggu 1: lanjutkan PMT + pantau BB dan PB/TB minggu 2.");
+   out.push("BB tidak naik minggu 1: evaluasi red flag/penyakit penyerta; lanjutkan atau rujuk sesuai hasil.");
+   out.push("BB tidak naik sampai 14 hari: rujuk ke RS.");
+   out.push("BB naik tetapi stunting: rujuk ke RS setelah 1 siklus PMT Lokal.");
  } else if(noRise && !risikoLebih){
-   utama.push(noRise2 ? "Berat badan tidak naik 2 kali berturut-turut (+4)" : "Berat badan tidak naik (T)");
-   if(noRise2){
-     out.push("BB tidak naik 2 kali berturut-turut (+4): anak sudah masuk prioritas untuk dirujuk ke Puskesmas guna dilakukan verifikasi status gizi dan penilaian oleh tenaga kesehatan.");
-   } else {
-     out.push("Konfirmasi status gizi oleh penanggung jawab/anggota klaster 2 Puskesmas (dokter, tenaga gizi, bidan/perawat).");
-   }
-   out.push("Lakukan pemeriksaan red flag/penyakit penyerta oleh dokter.");
-   out.push("Untuk BB/U normal dan BB/PB atau BB/TB tidak overweight: PMT lokal 14 hari; stimulasi perkembangan; edukasi dan konseling pemberian makan serta pencegahan infeksi; pemantauan BB 1 minggu.");
-   out.push("Jika minggu pertama BB naik adekuat: lanjutkan PMT lokal, edukasi/konseling, stimulasi perkembangan, dan pantau BB serta PB/TB pada minggu kedua.");
-   out.push("Jika minggu pertama BB tidak naik: periksa kembali red flag/penyakit penyerta oleh dokter; bila dapat ditangani di Puskesmas lanjutkan PMT lokal dan pantau BB serta PB/TB minggu kedua; bila tidak dapat ditangani, rujuk ke RS.");
-   out.push("Jika pada minggu kedua (14 hari) BB tidak naik: rujuk ke RS.");
-   out.push("Jika BB naik adekuat dan tidak stunting: lanjutkan PMT lokal dan pemantauan BB serta PB/TB sampai mencapai kriteria keberhasilan.");
-   out.push("Jika BB naik adekuat dengan stunting: rujuk ke RS setelah selesai 1 siklus PMT lokal untuk tata laksana stunting lebih lanjut.");
+   utama.push(noRise2 ? "BB tidak naik 2 kali berturut-turut (+4)" : "BB tidak naik (T)");
+   if(noRise2) out.push("BB tidak naik 2 kali berturut-turut: rujuk ke Puskesmas untuk verifikasi dan penilaian tenaga kesehatan.");
+   else out.push("Konfirmasi status gizi di Puskesmas.");
+   out.push("Periksa red flag/penyakit penyerta oleh dokter.");
+   out.push("Jika sesuai kriteria: PMT Lokal 14 hari + edukasi/konseling + stimulasi perkembangan + pantau BB minggu 1.");
+   out.push("BB naik minggu 1: lanjutkan PMT + pantau BB dan PB/TB minggu 2.");
+   out.push("BB tidak naik: evaluasi kembali; bila tidak dapat ditangani di Puskesmas, rujuk ke RS.");
+   out.push("BB tidak naik sampai 14 hari: rujuk ke RS.");
  } else if(bbKurang && !giziKurang){
    utama.push("Berat badan kurang");
-   out.push("Konfirmasi status gizi di Puskesmas oleh penanggung jawab/anggota klaster 2 (dokter, tenaga gizi, bidan/perawat).");
-   out.push("Lakukan pemeriksaan red flag/penyakit penyerta oleh dokter.");
-   out.push("Jika tidak ada red flag/penyakit penyerta: PMT lokal 28 hari; stimulasi perkembangan; edukasi dan konseling pemberian makan serta pencegahan infeksi; pemantauan BB 1 minggu.");
-   out.push("Jika red flag/penyakit penyerta dapat ditangani di Puskesmas: tata laksana kondisi tersebut, PMT lokal 28 hari, stimulasi perkembangan, edukasi/konseling, dan pemantauan BB 1 minggu.");
-   out.push("Jika tidak dapat ditangani di Puskesmas: rujuk ke RS.");
-   out.push("Jika minggu pertama BB naik adekuat: lanjutkan PMT lokal, edukasi/konseling, stimulasi perkembangan, dan pantau BB serta PB/TB minggu kedua.");
-   out.push("Jika minggu pertama BB tidak naik: lakukan pemeriksaan red flag/penyakit penyerta oleh dokter; lanjutkan tata laksana di Puskesmas bila dapat ditangani dan pantau BB serta PB/TB minggu kedua, atau rujuk bila tidak dapat ditangani.");
-   out.push("Pada minggu kedua (14 hari), jika BB tidak naik: rujuk ke RS. Jika BB naik adekuat: lanjutkan PMT lokal sampai selesai serta pemantauan BB dan PB/TB; bila disertai stunting, rujuk ke RS setelah 1 siklus PMT lokal untuk tata laksana stunting.");
+   out.push("Konfirmasi status gizi di Puskesmas.");
+   out.push("Periksa red flag/penyakit penyerta oleh dokter.");
+   out.push("PMT Lokal 28 hari + edukasi/konseling + stimulasi perkembangan + pantau BB minggu 1.");
+   out.push("BB naik minggu 1: lanjutkan PMT + pantau BB dan PB/TB minggu 2.");
+   out.push("BB tidak naik: evaluasi kembali; bila tidak dapat ditangani di Puskesmas, rujuk ke RS.");
+   out.push("BB tidak naik sampai 14 hari: rujuk ke RS.");
+   if(stunting) out.push("Jika disertai stunting: rujuk ke RS setelah 1 siklus PMT Lokal.");
  } else if(stunting){
    utama.push("Pendek/Sangat Pendek");
-   out.push("Konfirmasi status pertumbuhan oleh tenaga kesehatan dan periksa grafik PB/U atau TB/U.");
-   out.push("Jika terdapat stunting yang disertai masalah gizi akut, lakukan tata laksana masalah gizi akut terlebih dahulu dan rujuk ke RS setelah selesai 1 siklus PMT lokal sesuai hasil tata laksana.");
-   out.push("Pantau BB dan PB/TB secara berkala sesuai hasil pemeriksaan tenaga kesehatan.");
+   out.push("Konfirmasi status pertumbuhan oleh tenaga kesehatan.");
+   out.push("Jika disertai masalah gizi akut: tata laksana masalah akut terlebih dahulu.");
+   out.push("Pantau BB dan PB/TB secara berkala.");
  } else if(risikoLebih){
    utama.push("Risiko gizi lebih/Gizi Lebih/Obesitas");
-   out.push("Konfirmasi hasil pengukuran dan status gizi oleh tenaga kesehatan.");
-   out.push("Balita dengan BB tidak naik yang memiliki risiko BB lebih/overweight tidak menjadi sasaran PMT lokal.");
-   out.push("Lakukan asesmen pola makan, edukasi/konseling gizi sesuai usia, dan pemantauan BB serta PB/TB secara berkala.");
+   out.push("Konfirmasi hasil pengukuran dan status gizi.");
+   out.push("Bukan sasaran PMT Lokal bila BB tidak naik disertai risiko BB lebih/overweight.");
+   out.push("Asesmen pola makan, edukasi/konseling gizi, dan pemantauan BB serta PB/TB.");
  } else {
    utama.push("Tidak ada faktor risiko utama");
-   out.push("Lanjutkan pemantauan pertumbuhan rutin melalui Posyandu/Puskesmas dan Buku KIA.");
-   out.push("Berikan edukasi pemberian makan sesuai usia dan segera periksa bila anak sakit atau ditemukan tanda bahaya.");
+   out.push("Lanjutkan pemantauan pertumbuhan melalui Posyandu/Puskesmas dan Buku KIA.");
+   out.push("Berikan edukasi pemberian makan sesuai usia.");
  }
  return {utama:utama.join(" "),out};
 }
-
 function faktorTampil(c){
  const raw=String(c.faktor||"");
  const parts=raw.split(";").map(x=>x.trim()).filter(Boolean);
@@ -1645,3 +1638,10 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
 }
 </style>
 </body></html>
+<style id="simanis-v17-fixes">
+/* v17: modal/profile berada di atas sidebar desktop agar rekomendasi tidak tertutup */
+.modal{z-index:3000!important}
+.simanis-sidebar{z-index:1000!important}
+.simanis-mobile-nav{z-index:2000!important}
+#month{min-width:145px}
+</style>
