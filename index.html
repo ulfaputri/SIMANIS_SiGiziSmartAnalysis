@@ -768,6 +768,38 @@ function rekomendasiSingkat(c){
  return 'Pantau rutin di Posyandu/Puskesmas sesuai jadwal dan Buku KIA.';
 }
 
+function rujukanPuskesmas(c){
+ const st=c.lastStatus||{};
+ const bu=String(st["BB/U"]||c.lastBB||"").toLowerCase().trim();
+ const tu=String(st["TB/U"]||c.lastTB||"").toLowerCase().trim();
+ const bt=String(st["BB/TB"]||c.lastBBTB||"").toLowerCase().trim();
+ const noRise2=String(c.noRise2||"")==="1";
+ const alasan=[];
+ if(noRise2) alasan.push('BB tidak naik 2 kali berturut-turut (2T)');
+ if(bu==='sangat kurang' || bu==='kurang') alasan.push('BB/U di bawah kategori normal (Kurang/Sangat Kurang)');
+ if(bt.includes('gizi kurang') || bt.includes('gizi buruk')) alasan.push('indikasi Gizi Kurang/Gizi Buruk');
+ if(tu==='pendek' || tu==='sangat pendek') alasan.push('kecurigaan stunting (TB/U Pendek/Sangat Pendek)');
+ return alasan;
+}
+function referralGuidanceHTML(c){
+ const alasan=rujukanPuskesmas(c);
+ const dynamic=alasan.length
+   ? `<p style="font-size:12px;margin:7px 0"><b>⚠️ Berdasarkan data anak ini, perlu diarahkan ke Puskesmas karena:</b> ${esc(alasan.join('; '))}.</p>`
+   : `<p style="font-size:12px;margin:7px 0"><b>ℹ️ Tidak ada kriteria rujukan otomatis yang teridentifikasi dari data pertumbuhan terakhir.</b> Tetap rujuk ke Puskesmas bila hasil pemeriksaan Posyandu menemukan tanda bahaya/indikasi klinis.</p>`;
+ return `<div class="sourcebox" style="border-left:4px solid #d97706;background:#fffbeb;border-color:#f3d39a;margin-top:12px">
+   <b>🏥 Kapan Anak Harus Dirujuk ke Puskesmas?</b>
+   ${dynamic}
+   <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">
+    <li>Berat badan tidak naik atau trennya mendatar/turun sebanyak <b>2 kali berturut-turut (2T)</b>.</li>
+    <li>Berat badan berada di <b>bawah garis merah (BGM)</b> pada KMS.</li>
+    <li>Berat badan berada di <b>bawah garis oranye</b> atau anak terindikasi mengalami gizi kurang/gizi buruk.</li>
+    <li><b>LiLA berada di zona merah</b> pada anak usia 6–59 bulan.</li>
+    <li>Ada <b>kecurigaan stunting</b>, yaitu panjang/tinggi badan anak tidak sesuai dengan grafik pertumbuhan usianya.</li>
+   </ul>
+   <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> kriteria BGM, garis oranye, dan LiLA memerlukan hasil pemeriksaan/pengukuran di lapangan. SI-MANIS tidak menetapkan diagnosis secara otomatis; kader mengarahkan anak ke Puskesmas untuk penilaian tenaga kesehatan.</p>
+ </div>`;
+}
+
 function juknisTatalaksana(c){
  const bu=(c.lastStatus?.["BB/U"]||c.lastBB||"").toLowerCase().trim();
  const tu=(c.lastStatus?.["TB/U"]||c.lastTB||"").toLowerCase().trim();
@@ -1329,6 +1361,7 @@ ${t?`<div class="sourcebox" style="border-left:4px solid #0f766e">
     <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">${t.out.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
     <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> rekomendasi ini ditampilkan hanya bila terdapat masalah gizi/kondisi yang sesuai dengan data terakhir. Rekomendasi merupakan dukungan keputusan berbasis data, bukan diagnosis. Konfirmasi status gizi dan keputusan klinis tetap dilakukan tenaga kesehatan.</p>
   </div>`:""}
+  ${referralGuidanceHTML(c)}
 
   <h3>📏 Riwayat pengukuran Januari–September 2026</h3>
   <div style="overflow:auto"><table class="history"><thead><tr><th>Tanggal Pengukuran</th><th>Umur saat pengukuran</th><th>BB (kg)</th><th>PB/TB (cm)</th><th>BB/U</th><th>TB/U</th><th>BB/TB</th><th>Z BB/U</th><th>Z TB/U</th><th>Z BB/TB</th><th>Naik / Tidak Naik</th><th>Posyandu</th></tr></thead><tbody>${ukur||'<tr><td colspan="12">Tidak ada data pengukuran.</td></tr>'}</tbody></table></div>
@@ -1804,37 +1837,39 @@ function xmlEscape(v){
   return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;").replace(/'/g,"&apos;");
 }
 function downloadPriorityExcel(){
-  const month=selectedDashboardMonth();
-  const headers=['No','Nama Anak','Kategori Prioritas','Skor','Desa','Posyandu','Tanggal Pengukuran','BB (kg)','PB/TB (cm)','BB/U','TB/U','BB/TB','BB Naik/Tidak Naik','Faktor Risiko','Rekomendasi'];
-  const data=children.filter(c=>['MERAH','KUNING'].includes(priorityForMonth(c,month)))
-    .sort((a,b)=>{
-      const ca=priorityForMonth(a,month), cb=priorityForMonth(b,month);
-      const oa=ca==='MERAH'?0:1, ob=cb==='MERAH'?0:1;
-      if(oa!==ob) return oa-ob;
-      const sa=Number(a.score??a.lastScore??0), sb=Number(b.score??b.lastScore??0);
-      if(sb!==sa) return sb-sa;
-      const dc=String(a.desa||'').localeCompare(String(b.desa||''),'id'); if(dc) return dc;
-      const pc=String(a.posyandu||'TIDAK TERCATAT').localeCompare(String(b.posyandu||'TIDAK TERCATAT'),'id'); if(pc) return pc;
-      return String(a.nama||'').localeCompare(String(b.nama||''),'id');
+  try{
+    const month=selectedDashboardMonth();
+    const headers=['No','Nama Anak','Kategori Prioritas','Skor','Desa','Posyandu','Tanggal Pengukuran','BB (kg)','PB/TB (cm)','BB/U','TB/U','BB/TB','BB Naik/Tidak Naik','Faktor Risiko','Rekomendasi'];
+    const data=(Array.isArray(children)?children:[]).filter(c=>['MERAH','KUNING'].includes(priorityForMonth(c,month)))
+      .sort((a,b)=>{
+        const ca=priorityForMonth(a,month), cb=priorityForMonth(b,month);
+        const oa=ca==='MERAH'?0:1, ob=cb==='MERAH'?0:1;
+        if(oa!==ob) return oa-ob;
+        const sa=Number(a.score??a.lastScore??0), sb=Number(b.score??b.lastScore??0);
+        if(sb!==sa) return sb-sa;
+        return String(a.nama||'').localeCompare(String(b.nama||''),'id');
+      });
+    if(!data.length){ alert('Tidak ada anak prioritas MERAH/KUNING pada bulan yang dipilih.'); return; }
+    const esc=v=>String(v??'').replace(/[&<>\"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[m])).replace(/[\r\n]+/g,' ');
+    const rows=data.map((c,i)=>{
+      const r=monthRecord(c,month), cat=priorityForMonth(c,month);
+      return [i+1,c.nama,cat,c.score??c.lastScore??0,c.desa||'',c.posyandu||'TIDAK TERCATAT',r?.tanggal||c.lastDate||'',r?.bb??'',r?.tb??'',r?.bb_u??'',r?.tb_u??'',r?.bb_tb??'',r?.naik==='T'?'Tidak Naik':r?.naik==='N'?'Naik':r?.naik||'',faktorTampil(c),rekomendasiSingkat(c)];
     });
-  const esc=v=>String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\r?\n/g,' ');
-  const widths=[45,180,105,55,120,110,105,70,75,90,90,95,120,260,360];
-  let xml='<?xml version="1.0" encoding="UTF-8"?>';
-  xml+='<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">';
-  xml+='<Styles><Style ss:ID="Header"><Font ss:Bold="1" ss:Color="#FFFFFF"/><Interior ss:Color="#0F766E" ss:Pattern="Solid"/><Alignment ss:Vertical="Center" ss:WrapText="1"/></Style><Style ss:ID="Cell"><Alignment ss:Vertical="Top" ss:WrapText="1"/></Style></Styles>';
-  xml+='<Worksheet ss:Name="Anak Prioritas"><Table ss:ExpandedColumnCount="'+headers.length+'" ss:ExpandedRowCount="'+(data.length+1)+'">';
-  widths.forEach(w=>xml+='<Column ss:Width="'+w+'"/>');
-  xml+='<Row ss:AutoFitHeight="0">'+headers.map(h=>'<Cell ss:StyleID="Header"><Data ss:Type="String">'+esc(h)+'</Data></Cell>').join('')+'</Row>';
-  data.forEach((c,i)=>{
-    const r=monthRecord(c,month), cat=priorityForMonth(c,month);
-    const vals=[i+1,c.nama,cat,c.score??c.lastScore??0,c.desa||'',c.posyandu||'TIDAK TERCATAT',r?.tanggal||c.lastDate||'',r?.bb??'',r?.tb??'',r?.bb_u??'',r?.tb_u??'',r?.bb_tb??'',r?.naik??'',faktorTampil(c),rekomendasiSingkat(c)];
-    xml+='<Row>'+vals.map((v,j)=>'<Cell ss:StyleID="Cell"><Data ss:Type="String">'+esc(v)+'</Data></Cell>').join('')+'</Row>';
-  });
-  xml+='</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><ActivePane>2</ActivePane><ProtectContents>False</ProtectContents><ProtectObjects>False</ProtectObjects><DisplayPageBreaks>False</DisplayPageBreaks></WorksheetOptions></Worksheet></Workbook>';
-  const blob=new Blob([xml],{type:'application/vnd.ms-excel;charset=utf-8;'});
-  const url=URL.createObjectURL(blob), a=document.createElement('a');
-  a.href=url; a.download='SI-MANIS_Anak_Prioritas_'+month+'_2026.xls'; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),1500);
+    // SpreadsheetML sederhana: dibaca langsung oleh Excel/LibreOffice dan tidak bergantung pada library eksternal.
+    let table='<table border="1"><thead><tr>'+headers.map(h=>'<th style="background:#0f766e;color:#fff">'+esc(h)+'</th>').join('')+'</tr></thead><tbody>';
+    table+=rows.map(row=>'<tr>'+row.map(v=>'<td>'+esc(v)+'</td>').join('')+'</tr>').join('');
+    table+='</tbody></table>';
+    const html='<!doctype html><html><head><meta charset="utf-8"><style>td,th{padding:6px;vertical-align:top}th{font-weight:bold}</style></head><body>'+table+'</body></html>';
+    const blob=new Blob(['\ufeff',html],{type:'application/vnd.ms-excel;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.style.display='none'; a.href=url; a.download='SI-MANIS_Anak_Prioritas_'+month+'_2026.xls';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},2000);
+  }catch(err){
+    console.error('downloadPriorityExcel error:',err);
+    alert('Data belum dapat diekspor. Silakan pilih bulan kembali lalu coba lagi.');
+  }
 }
 
 function downloadPriorityCSV(){ downloadPriorityExcel(); }
