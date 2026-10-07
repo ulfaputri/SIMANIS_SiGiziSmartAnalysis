@@ -94,6 +94,21 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:11px}
   .simanis-sidebar{display:none}
 }
 </style>
+<style id="simanis-homevisit-paging-style">
+.homevisit-ranked-card{display:flex!important;gap:12px;align-items:flex-start;position:relative}
+.homevisit-rank{min-width:34px;height:34px;border-radius:10px;background:#edf5f8;color:#24566b;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:15px}
+.homevisit-card-main{min-width:0;flex:1}
+.homevisit-name{border:0;background:none;padding:0;text-align:left;font-size:16px;font-weight:800;color:#185b78;cursor:pointer;text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:3px}
+.homevisit-name:hover{color:#0b4259}
+.homevisit-tags{display:flex;gap:7px;flex-wrap:wrap;margin:7px 0}
+.homevisit-score{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:800}
+.homevisit-score.red{background:#fde8e8;color:#a61b1b}.homevisit-score.yellow{background:#fff5d9;color:#8a5a00}.homevisit-score.green{background:#e8f7ee;color:#17653b}
+.homevisit-profile-btn{margin-top:9px!important;padding:7px 11px!important;font-size:12px!important}
+.homevisit-pager{display:flex;align-items:center;justify-content:center;gap:12px;margin:14px 0 4px;flex-wrap:wrap}
+.homevisit-pager span{font-size:13px;color:#486477}
+.homevisit-pager button:disabled{opacity:.45;cursor:not-allowed}
+</style>
+
 </style>
 
 <style id="sigizi-mobile-fix">
@@ -218,6 +233,69 @@ table{width:100%}
 }
 @media(min-width:901px){
   body.page-followup .followup-downloads button{min-height:46px!important}
+}
+</style>
+
+
+<style id="simanis-homevisit-filter-style">
+.homevisit-filter-box{margin:12px 0 16px;padding:14px;border:1px solid #bfe0ef;border-radius:16px;background:linear-gradient(135deg,#f3fbff,#f7fffc)}
+.homevisit-filter-title{font-weight:800;color:#075e83;font-size:15px;margin-bottom:4px}
+.homevisit-filters{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.homevisit-filters label{display:block}
+.homevisit-filters label span{display:block;font-size:11px;font-weight:700;color:#36566b;margin-bottom:5px}
+.homevisit-filters select{width:100%;padding:9px 11px;border:1px solid #cfe2ec;border-radius:10px;background:#fff;font-weight:600;color:#24485d}
+.homevisit-summary{margin:10px 0 8px;padding:9px 11px;border-radius:10px;background:#fff;border:1px solid #dcecf3;font-size:12px;color:#36566b}
+.homevisit-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.homevisit-card{background:#fff;border:1px solid #dbe8ef;border-radius:12px;padding:11px}
+.homevisit-card b{color:#17384e}
+.homevisit-card .hv-meta{font-size:11px;color:#64748b;line-height:1.45;margin-top:4px}
+.homevisit-card .hv-reason{margin-top:7px;font-size:11px;line-height:1.45;color:#7c2d12}
+.homevisit-badge{display:inline-block;margin-top:7px;padding:4px 8px;border-radius:999px;background:#fff1e8;color:#b45309;font-size:10px;font-weight:800}
+@media(max-width:700px){.homevisit-filters,.homevisit-list{grid-template-columns:1fr}}
+</style>
+<style id="simanis-homevisit-target-style">
+.homevisit-target{
+  margin:14px 0 16px;
+  border:1px solid #cfe2ec;
+  border-radius:14px;
+  background:linear-gradient(135deg,#f7fbff 0%,#f8fffd 100%);
+  padding:14px;
+}
+.homevisit-target h3{
+  margin:0 0 5px;
+  color:#075e83;
+  font-size:15px;
+}
+.homevisit-target .help{
+  margin:0 0 10px;
+}
+.homevisit-target-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+.homevisit-target-item{
+  background:#fff;
+  border:1px solid #dbe8ef;
+  border-radius:12px;
+  padding:12px;
+}
+.homevisit-target-item h4{
+  margin:0 0 6px;
+  font-size:13px;
+  color:#214b61;
+}
+.homevisit-target-item ul{
+  margin:0 0 0 18px;
+  padding:0;
+  font-size:11px;
+  line-height:1.6;
+  color:#475569;
+}
+@media(max-width:700px){
+  .homevisit-target{padding:12px;margin:12px 0 14px}
+  .homevisit-target-grid{grid-template-columns:1fr}
+  .homevisit-target-item{padding:11px}
 }
 </style>
 </head>
@@ -363,12 +441,70 @@ table{width:100%}
   <details open>
     <summary style="cursor:pointer;font-weight:800;color:var(--primary2);font-size:16px">📝 Dashboard Tindak Lanjut</summary>
     <p class="help" style="margin-top:10px">Daftar tindak lanjut dan anak yang perlu dipantau berdasarkan hasil analisis SI-MANIS.</p>
+
+    <section class="homevisit-target" aria-label="Sasaran Utama Kunjungan Rumah">
+      <h3>🏠 Sasaran Utama Kunjungan Rumah</h3>
+      <p class="help">Kunjungan rumah diprioritaskan untuk menjangkau anak yang tidak hadir ke Posyandu atau anak yang memerlukan pemantauan masalah gizi dan kesehatan.</p>
+      <div class="homevisit-target-grid">
+        <article class="homevisit-target-item">
+          <h4>1. Tidak hadir ke Posyandu</h4>
+          <ul>
+            <li>Bayi dan balita yang absen menimbang berat badan.</li>
+            <li>Anak yang belum dilakukan pengukuran panjang/tinggi badan sesuai jadwal.</li>
+            <li>Anak yang melewatkan jadwal imunisasi atau pelayanan Posyandu yang diperlukan.</li>
+          </ul>
+        </article>
+        <article class="homevisit-target-item">
+          <h4>2. Masalah gizi dan kesehatan</h4>
+          <ul>
+            <li>Anak dengan berat badan tidak naik (TMTN).</li>
+            <li>Anak dengan BB/U kurang atau sangat kurang.</li>
+            <li>Anak dengan indikasi gizi kurang atau gizi buruk.</li>
+            <li>Balita yang sedang sakit dan memerlukan pemantauan lebih lanjut.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
     <div class="followup-month-filter" style="margin:12px 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap">
       <label for="fuMonthFilter" style="font-weight:700;color:#36566b">📅 Bulan pengukuran terakhir</label>
       <select id="fuMonthFilter" onchange="renderFollowupDashboard()" style="min-width:170px;padding:9px 12px;border:1px solid #cfe2ec;border-radius:10px;background:#fff;font-weight:600;color:#24485d">
         <option value="Jan">Januari 2026</option><option value="Feb">Februari 2026</option><option value="Mar">Maret 2026</option><option value="Apr">April 2026</option><option value="Mei">Mei 2026</option><option value="Jun">Juni 2026</option><option value="Jul">Juli 2026</option><option value="Agu">Agustus 2026</option><option value="Sep" selected>September 2026</option>
       </select>
     </div>
+
+    <section class="homevisit-filter-box" aria-label="Filter Kunjungan Rumah">
+      <div class="homevisit-filter-title">🏠 Filter Sasaran Kunjungan Rumah</div>
+      <p class="help">Gunakan filter ini untuk menampilkan anak yang berdasarkan data SI-MANIS perlu diprioritaskan untuk kunjungan rumah pada bulan terpilih.</p>
+      <div class="homevisit-filters">
+        <label><span>Status kunjungan rumah</span>
+          <select id="homeVisitFilter" onchange="renderFollowupDashboard()">
+            <option value="YA">🏠 Perlu kunjungan rumah</option>
+            <option value="SEMUA">Semua anak</option>
+            <option value="TIDAK">Tidak perlu kunjungan rumah</option>
+          </select>
+        </label>
+        <label><span>Posyandu</span>
+          <select id="homeVisitPosyanduFilter" onchange="renderFollowupDashboard()">
+            <option value="SEMUA">Semua Posyandu</option>
+            <option value="ANGGREK">ANGGREK</option><option value="CENDANA">CENDANA</option><option value="DAHLIA">DAHLIA</option><option value="DELIMA">DELIMA</option><option value="FLAMBOYAN">FLAMBOYAN</option><option value="KENANGA">KENANGA</option><option value="MATAHARI">MATAHARI</option><option value="SUTERA">SUTERA</option><option value="TIDAK TERCATAT">TIDAK TERCATAT</option>
+          </select>
+        </label>
+        <label><span>Alasan</span>
+          <select id="homeVisitReasonFilter" onchange="renderFollowupDashboard()">
+            <option value="SEMUA">Semua alasan</option>
+            <option value="TIDAK_DIUKUR">Tidak hadir/belum diukur</option>
+            <option value="2T">BB tidak naik 2 kali (2T)</option>
+            <option value="BB_KURANG">BB/U kurang atau sangat kurang</option>
+            <option value="GIZI_KURANG_BURUK">Gizi kurang atau gizi buruk</option>
+            <option value="RISIKO_TINGGI">Risiko tinggi (MERAH)</option>
+          </select>
+        </label>
+      </div>
+      <div id="homeVisitSummary" class="homevisit-summary"></div>
+      <div id="homeVisitRows" class="homevisit-list"></div>
+      <div id="homeVisitPager" class="homevisit-pager" aria-label="Paginasi sasaran kunjungan rumah"></div>
+    </section>
+
     <div class="followup-kpis followup-kpis-priority">
       <div class="followup-kpi followup-kpi-total"><span>🎯 Total anak perlu tindak lanjut</span><b id="fuNeed">0</b><small style="display:block;margin-top:4px;opacity:.78">Gabungan anak kategori MERAH dan KUNING pada bulan pengukuran yang dipilih.</small></div>
       <div class="followup-kpi followup-kpi-red"><span>🔴 Prioritas tinggi (MERAH)</span><b id="fuRed">0</b><small style="display:block;margin-top:4px;opacity:.78">Perlu perhatian dan tindak lanjut lebih segera.</small></div>
@@ -959,10 +1095,91 @@ function downloadFollowupCSV(){
 
 
 
+function homeVisitReasons(c, month){
+  const reasons=[];
+  const rec=monthRecord(c,month);
+  const status=monthStatus(c,month)||{};
+  const bu=String(status.bb_u||'').toLowerCase().trim();
+  const bt=String(status.bb_tb||'').toLowerCase().trim();
+  const growth=finalGrowthFlags(validMeasurementsUntil(c,month));
+  const cat=String(priorityForMonth(c,month)||'').toUpperCase();
+  const notMeasured=!rec;
+  if(notMeasured) reasons.push({key:'TIDAK_DIUKUR',label:'Tidak hadir/belum diukur pada bulan terpilih'});
+  if(growth.t2 || String(c.noRise2||'')==='1') reasons.push({key:'2T',label:'BB tidak naik 2 kali berturut-turut (2T)'});
+  if(bu==='kurang' || bu==='sangat kurang') reasons.push({key:'BB_KURANG',label:'BB/U kurang atau sangat kurang'});
+  if(bt.includes('gizi kurang') || bt.includes('gizi buruk')) reasons.push({key:'GIZI_KURANG_BURUK',label:'Gizi kurang atau gizi buruk'});
+  if(cat==='MERAH') reasons.push({key:'RISIKO_TINGGI',label:'Risiko tinggi (MERAH)'});
+  return reasons;
+}
+function needsHomeVisit(c,month){ return homeVisitReasons(c,month).length>0; }
+function renderHomeVisitDashboard(month){
+  const statusFilter=document.getElementById('homeVisitFilter')?.value||'YA';
+  const reasonFilter=document.getElementById('homeVisitReasonFilter')?.value||'SEMUA';
+  const posyanduFilter=document.getElementById('homeVisitPosyanduFilter')?.value||'SEMUA';
+  const all=children.filter(c=>isBalita59Bulan(c,month));
+  const visit=all.filter(c=>needsHomeVisit(c,month));
+  let list=statusFilter==='YA'?visit:statusFilter==='TIDAK'?all.filter(c=>!needsHomeVisit(c,month)):all;
+  if(posyanduFilter!=='SEMUA') list=list.filter(c=>String(c.posyandu||'TIDAK TERCATAT').trim().toUpperCase()===posyanduFilter);
+  if(reasonFilter!=='SEMUA') list=list.filter(c=>homeVisitReasons(c,month).some(r=>r.key===reasonFilter));
+
+  const monthNames={Jan:'Januari',Feb:'Februari',Mar:'Maret',Apr:'April',Mei:'Mei',Jun:'Juni',Jul:'Juli',Agu:'Agustus',Sep:'September'};
+  const summary=document.getElementById('homeVisitSummary');
+  const target=document.getElementById('homeVisitRows');
+  const pager=document.getElementById('homeVisitPager');
+  if(!target)return;
+
+  // Urutan urgensi: skor tertinggi → MERAH → jumlah alasan → nama.
+  list=list.slice().sort((a,b)=>{
+    const sa=Number(monthScore(a,month))||0, sb=Number(monthScore(b,month))||0;
+    if(sb!==sa)return sb-sa;
+    const ca=String(priorityForMonth(a,month)||'').toUpperCase(), cb=String(priorityForMonth(b,month)||'').toUpperCase();
+    const oa=ca==='MERAH'?0:ca==='KUNING'?1:2, ob=cb==='MERAH'?0:cb==='KUNING'?1:2;
+    if(oa!==ob)return oa-ob;
+    const ra=homeVisitReasons(a,month).length, rb=homeVisitReasons(b,month).length;
+    if(rb!==ra)return rb-ra;
+    return String(a.nama||'').localeCompare(String(b.nama||''),'id');
+  });
+
+  const pageSize=10;
+  const stateKey='homeVisitPage_'+month;
+  let page=Number(window[stateKey]||1); if(!Number.isFinite(page)||page<1)page=1;
+  const totalPages=Math.max(1,Math.ceil(list.length/pageSize));
+  if(page>totalPages)page=totalPages;
+  window[stateKey]=page;
+  const visible=list.slice((page-1)*pageSize,page*pageSize);
+
+  if(summary) summary.innerHTML=`<b>${visit.length.toLocaleString('id-ID')} anak</b> teridentifikasi sebagai sasaran kunjungan rumah pada <b>${monthNames[month]||month} 2026</b>. ${list.length.toLocaleString('id-ID')} anak sesuai filter. <span style="opacity:.8">Menampilkan ${list.length?((page-1)*pageSize+1):0}–${Math.min(page*pageSize,list.length)} dari ${list.length} anak.</span>`;
+
+  const cards=visible.map((c,i)=>{
+    const rs=homeVisitReasons(c,month);
+    const rec=monthRecord(c,month);
+    const cat=String(priorityForMonth(c,month)||'BELUM DINILAI').toUpperCase();
+    const score=Number(monthScore(c,month))||0;
+    const idx=children.indexOf(c);
+    const nomor=(page-1)*pageSize+i+1;
+    const badgeClass=cat==='MERAH'?'red':cat==='KUNING'?'yellow':'green';
+    return `<article class="homevisit-card homevisit-ranked-card">
+      <div class="homevisit-rank">${nomor}</div>
+      <div class="homevisit-card-main">
+        <button class="homevisit-name" type="button" onclick="openProfile(${idx})" title="Buka profil anak">${esc(c.nama||'Tanpa nama')}</button>
+        <div class="hv-meta">${esc(c.desa||'-')} • ${esc(c.posyandu||'TIDAK TERCATAT')}<br>Pengukuran: ${esc(rec?.tanggal||'Belum ada pengukuran bulan ini')}</div>
+        <div class="homevisit-tags"><span class="homevisit-score ${badgeClass}">${esc(cat)} • skor ${score}</span><span class="homevisit-badge">🏠 PERLU KUNJUNGAN</span></div>
+        <div class="hv-reason"><b>Alasan:</b> ${esc(rs.map(r=>r.label).join('; ')||'Tidak ada alasan kunjungan rumah berdasarkan data tersedia.')}</div>
+        <button class="btn2 homevisit-profile-btn" type="button" onclick="openProfile(${idx})">👤 Lihat profil anak</button>
+      </div>
+    </article>`;
+  }).join('');
+  target.innerHTML=cards || '<div class="followup-empty" style="grid-column:1/-1">Tidak ada anak sesuai filter kunjungan rumah.</div>';
+
+  if(pager){
+    pager.innerHTML=totalPages>1?`<button class="btn2" type="button" ${page<=1?'disabled':''} onclick="window.homeVisitPage_${month}=Math.max(1,(window.homeVisitPage_${month}||1)-1);renderFollowupDashboard()">‹ Sebelumnya</button><span>Halaman <b>${page}</b> dari <b>${totalPages}</b></span><button class="btn2" type="button" ${page>=totalPages?'disabled':''} onclick="window.homeVisitPage_${month}=Math.min(${totalPages},(window.homeVisitPage_${month}||1)+1);renderFollowupDashboard()">Berikutnya ›</button>`:'';
+  }
+}
 function renderFollowupDashboard(){
  const fuMonth=document.getElementById('fuMonthFilter')?.value || 'Sep';
  const monthNames={Jan:'Januari',Feb:'Februari',Mar:'Maret',Apr:'April',Mei:'Mei',Jun:'Juni',Jul:'Juli',Agu:'Agustus',Sep:'September'};
  const monthLabel=(monthNames[fuMonth]||fuMonth)+' 2026';
+ renderHomeVisitDashboard(fuMonth);
  // Samakan dengan Data & Peta: gunakan data pengukuran pada bulan terpilih dan hitung kategori dari logika monthCategory.
  const measured=children.filter(c=>!!monthRecord(c,fuMonth));
  const eligible=measured.filter(c=>['MERAH','KUNING'].includes(String(priorityForMonth(c,fuMonth)||'').toUpperCase()));
