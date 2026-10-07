@@ -1354,6 +1354,31 @@ function openProfile(idx){
     <div class="mini"><span>Tindak lanjut</span><b style="font-size:12px">${(String(c.lastBBTB||"").toLowerCase().includes("risiko gizi lebih")||String(c.lastBBTB||"").toLowerCase().includes("gizi lebih")||String(c.lastBBTB||"").toLowerCase().includes("obesitas")||String(c.lastStatus?.["BB/U"]||"").toLowerCase().includes("risiko lebih"))?"PEMANTAUAN RISIKO GIZI LEBIH":"Sesuai masalah gizi"}</b></div>
   </div>
   <div class="card" style="box-shadow:none;background:#fafdfc"><b>Faktor risiko</b><p style="font-size:12px">${esc(faktorTampil(c))}</p><b>Rekomendasi</b><p style="font-size:12px">${esc(rekomendasiSingkat(c))}</p></div>
+  ${(()=>{
+    const bu=String(c.lastStatus?.["BB/U"]||c.lastBB||"").toLowerCase().trim();
+    const tu=String(c.lastStatus?.["TB/U"]||c.lastTB||"").toLowerCase().trim();
+    const bt=String(c.lastStatus?.["BB/TB"]||c.lastBBTB||"").toLowerCase().trim();
+    const noRise=String(c.noRise||"")==="1";
+    const noRise2=String(c.noRise2||"")==="1";
+    const alasan=[];
+    if(noRise2) alasan.push("BB tidak naik 2 kali berturut-turut (2T)");
+    if(bu.includes("sangat kurang")||bu==="kurang") alasan.push("BB/U Kurang atau Sangat Kurang");
+    if(bt.includes("gizi buruk")||bt.includes("gizi kurang")) alasan.push("indikasi Gizi Kurang/Gizi Buruk");
+    if(tu.includes("pendek")||tu.includes("sangat pendek")) alasan.push("kecurigaan pertumbuhan pendek/stunting");
+    if(!alasan.length && noRise) alasan.push("BB tidak naik pada pengukuran terakhir");
+    return `<div class="sourcebox" style="border-left:4px solid #b45309;background:#fffaf0;border-color:#f3d08a">
+      <b style="color:#92400e">🏥 Rujuk/Datang ke Puskesmas</b>
+      <p style="font-size:12px;line-height:1.55;margin:7px 0"><b>Anak perlu dibawa ke Puskesmas untuk pemeriksaan dan penilaian tenaga kesehatan apabila ditemukan:</b></p>
+      <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">
+        <li>Berat badan tidak naik <b>2 kali berturut-turut (2T)</b>.</li>
+        <li>Berat badan berada <b>di bawah garis merah (BGM)</b> pada KMS/grafik pertumbuhan.</li>
+        <li>Berat badan berada <b>di bawah garis oranye</b> atau terdapat indikasi gizi kurang/gizi buruk.</li>
+        <li><b>LiLA zona merah</b> pada anak usia 6–59 bulan.</li>
+        <li>Terdapat <b>kecurigaan stunting</b> berdasarkan grafik pertumbuhan atau hasil TB/U.</li>
+      </ul>
+      ${alasan.length?`<p style="font-size:12px;margin:9px 0 0;color:#92400e"><b>Indikasi pada data anak ini:</b> ${esc(alasan.join('; '))}. <b>→ Arahkan ke Puskesmas untuk verifikasi dan pemeriksaan lebih lanjut.</b></p>`:`<p style="font-size:11px;margin:9px 0 0;color:#64748b">Jika salah satu tanda di atas ditemukan saat pelayanan Posyandu, kader mengarahkan anak ke Puskesmas. Kriteria BGM, garis oranye, dan LiLA memerlukan hasil pengukuran/pemeriksaan lapangan.</p>`}
+    </div>`;
+  })()}
 
 ${t?`<div class="sourcebox" style="border-left:4px solid #0f766e">
     <b>📘 Rekomendasi tatalaksana berbasis Juknis PMT Lokal 2025</b>
