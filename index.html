@@ -457,11 +457,11 @@ table{width:100%}
           </ul>
         </article>
         <article class="homevisit-target-item">
-          <h4>2. Masalah gizi dan kesehatan</h4>
+          <h4>2. Masalah gizi dan pertumbuhan</h4>
           <ul>
             <li>Anak dengan berat badan tidak naik (TMTN).</li>
             <li>Anak dengan BB/U Kurang atau Sangat Kurang.</li>
-            <li>Anak dengan indikasi Gizi Kurang atau Gizi Buruk.</li>
+            <li>Anak dengan indikasi BB/TB Gizi Kurang atau Gizi Buruk.</li>
           </ul>
         </article>
       </div>
@@ -714,58 +714,84 @@ function homeVisitSentence(c,month){
     : 'Tidak termasuk sasaran kunjungan rumah berdasarkan kriteria operasional SI-MANIS.';
 }
 
-function rekomendasiSingkat(c){
- if(!c.lastDate && Object.keys(c.bb||{}).length===0){
-   return 'Kunjungan rumah/sweeping; lakukan pengukuran; lengkapi data; kemudian masukkan anak ke pemantauan Posyandu/Puskesmas.';
- }
+function homeVisitGuidanceHTML(c){
+ const rs=homeVisitReasons(c,c.lastMonth||'Sep');
+ const hasProblem=(()=>{
+   const st=c.lastStatus||{};
+   const bu=String(st["BB/U"]||c.lastBB||"").toLowerCase().trim();
+   const bt=String(st["BB/TB"]||c.lastBBTB||"").toLowerCase().trim();
+   const tu=String(st["TB/U"]||c.lastTB||"").toLowerCase().trim();
+   return bu==='kurang'||bu==='sangat kurang'||bt.includes('gizi kurang')||bt.includes('gizi buruk')||tu==='pendek'||tu==='sangat pendek'||String(c.noRise||'')==='1'||String(c.noRise2||'')==='1';
+ })();
+ const statusBox = rs.length
+   ? `<p style="font-size:12px;margin:7px 0"><b>🏠 Anak termasuk sasaran kunjungan rumah karena:</b> ${esc(rs.map(r=>r.label).join('; '))}.</p>`
+   : `<p style="font-size:12px;margin:7px 0"><b>🏠 Anak tidak termasuk sasaran kunjungan rumah berdasarkan kriteria operasional SI-MANIS pada bulan terpilih.</b></p>`;
+ return `<div class="sourcebox" style="border-left:4px solid #0f766e;background:#f0fdfa;border-color:#99d8d0;margin-top:12px">
+   <b style="color:#0f766e">🏠 Rekomendasi Kunjungan Rumah</b>
+   <p style="font-size:11px;line-height:1.5;margin:6px 0;color:#475569">Kunjungan rumah ditetapkan berdasarkan kebutuhan penjangkauan, bukan semata-mata berdasarkan warna atau skor SI-MANIS.</p>
+   ${statusBox}
+   ${rs.length?`<ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">
+      <li>Lakukan verifikasi hasil pengukuran dan kondisi anak.</li>
+      ${hasProblem?`<li>Jika ditemukan masalah gizi: lakukan asesmen riwayat pola makan dan riwayat sakit, konseling/edukasi, serta tindak lanjut sesuai hasil asesmen dan pedoman.</li>`:`<li>Jika setelah pengukuran status gizi normal: anjurkan pemantauan berat badan dan panjang/tinggi badan secara rutin di Posyandu.</li>`}
+      <li>Jika ditemukan kondisi yang memerlukan pemeriksaan lebih lanjut, arahkan anak ke Puskesmas.</li>
+   </ul>`:`<p style="font-size:12px;line-height:1.6;margin:6px 0 0">Tetap lakukan pemantauan pertumbuhan rutin di Posyandu. Bila pada kunjungan pelayanan ditemukan masalah gizi atau tanda bahaya, tindak lanjuti sesuai hasil pemeriksaan.</p>`}
+   <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> kunjungan rumah berfungsi menjangkau dan memastikan tindak lanjut. Diagnosis dan keputusan klinis tetap dilakukan oleh tenaga kesehatan.</p>
+ </div>`;
+}
+
+function rekomendasiData(c){
  const st=c.lastStatus||{};
  const bu=String(st["BB/U"]||c.lastBB||"").toLowerCase().trim();
  const tu=String(st["TB/U"]||c.lastTB||"").toLowerCase().trim();
  const bt=String(st["BB/TB"]||c.lastBBTB||"").toLowerCase().trim();
- const nr=String(c.noRise||"")==="1";
+ const noRise=String(c.noRise||"")==="1";
  const noRise2=String(c.noRise2||"")==="1";
  const giziBuruk=bt.includes("gizi buruk");
  const giziKurang=bt.includes("gizi kurang");
- const risikoLebih=bt.includes("risiko gizi lebih") || bt.includes("gizi lebih") || bt.includes("obesitas") || bu.includes("risiko lebih");
  const bbKurang=(bu==="kurang" || bu==="sangat kurang");
- const sangatKurang=bu==="sangat kurang";
- const pendek=tu==="pendek";
- const sangatPendek=tu==="sangat pendek";
- const stunting=pendek || sangatPendek;
- const visit=homeVisitSentence(c,c.lastMonth||'Sep');
-
- // Urutan mengikuti tingkat masalah. Kunjungan rumah hanya ditambahkan bila memang ada alasan penjangkauan.
- if(giziBuruk){
-   return 'Segera pemeriksaan lanjutan oleh tenaga kesehatan; nilai tanda bahaya/penyakit penyerta dan rujuk sesuai kondisi; pantau di Puskesmas/Posyandu sesuai hasil asesmen. '+visit;
+ const stunting=(tu==="pendek" || tu==="sangat pendek");
+ const risikoLebih=bt.includes("risiko gizi lebih") || bt.includes("gizi lebih") || bt.includes("obesitas") || bu.includes("risiko lebih");
+ const adaMasalah=giziBuruk || giziKurang || bbKurang || stunting || noRise || noRise2;
+ const belum=!c.lastDate && !c.lastBB && !c.lastTB;
+ const rujuk=rujukanPuskesmas(c).length>0;
+ const kunj=homeVisitReasons(c,c.lastMonth||'Sep').length>0;
+ let body='';
+ // Prioritas rekomendasi mengikuti kondisi yang aktif, tanpa mengulang faktor risiko.
+ if(noRise || noRise2){
+   // Bila juga ada gizi kurang/BBU kurang, gunakan tatalaksana masalah gizinya.
+   if(giziBuruk || giziKurang){
+     body='Asesmen riwayat pola makan dan riwayat sakit; konseling/edukasi; tindak lanjut sesuai hasil asesmen dan pedoman.';
+   } else if(risikoLebih){
+     body='Asesmen penyebab BB tidak naik dan penyakit penyerta; konseling gizi; tindak lanjut sesuai hasil asesmen dan pedoman; pantau dan timbang ulang sesuai rencana.';
+   } else {
+     body='Asesmen penyebab BB tidak naik dan penyakit penyerta; konseling gizi; tindak lanjut sesuai hasil asesmen dan pedoman; pantau dan timbang ulang sesuai rencana.';
+   }
+ } else if(risikoLebih){
+   body='Konfirmasi status; asesmen pola makan; konseling gizi dan aktivitas sesuai usia; pantau BB dan PB/TB; evaluasi ulang sesuai rencana.';
+ } else if(adaMasalah){
+   body='Asesmen riwayat pola makan dan riwayat sakit; konseling/edukasi; tindak lanjut sesuai hasil asesmen dan pedoman.';
+ } else if(belum){
+   body='Lengkapi pengukuran dan pastikan anak masuk pemantauan Posyandu/Puskesmas.';
+ } else {
+   body='Status gizi normal: rutin pantau berat badan dan TB/PB di Posyandu.';
  }
- if(giziKurang){
-   let r='Konfirmasi status gizi di Puskesmas; asesmen pola makan dan riwayat sakit; konseling gizi pengasuh; lakukan intervensi sesuai hasil asesmen dan pedoman; pantau BB pada minggu pertama dan selanjutnya sesuai rencana. Bila disertai stunting, evaluasi pertumbuhan linier dan tindak lanjut sesuai pedoman.';
-   return r+' '+visit;
- }
- if(sangatKurang){
-   return 'Verifikasi segera oleh tenaga kesehatan; asesmen penyebab/penyakit penyerta; konseling gizi; intervensi sesuai hasil asesmen dan pedoman; timbang ulang sesuai rencana. '+visit;
- }
- if(noRise2){
-   return 'Konfirmasi status gizi; asesmen penyebab BB tidak naik dan penyakit penyerta; konseling gizi; tindak lanjut sesuai ketentuan 1T/2T; pantau dan timbang ulang. '+visit;
- }
- if(bbKurang){
-   let r='Konfirmasi status gizi; asesmen pola makan dan riwayat sakit; konseling gizi pengasuh; lakukan intervensi sesuai hasil asesmen dan pedoman; pantau pertumbuhan dan timbang ulang sesuai rencana.';
-   if(stunting) r+=' Evaluasi juga pertumbuhan linier dan masalah penyerta.';
-   return r+' '+visit;
- }
- if(stunting){
-   return 'Konfirmasi hasil pengukuran; telaah pertumbuhan linier dan riwayat pengukuran; asesmen masalah penyerta; konseling gizi; pantau BB dan PB/TB secara berkala. Rujuk bila ada indikasi sesuai hasil asesmen. '+visit;
- }
- if(nr){
-   return 'Telaah kualitas pengukuran dan penyebab BB tidak naik; konseling gizi; pantau pertumbuhan; timbang ulang sesuai rencana. '+visit;
- }
- if(risikoLebih){
-   return 'Konfirmasi status; asesmen pola makan; konseling gizi dan aktivitas sesuai usia; pantau BB dan PB/TB; evaluasi ulang sesuai rencana. '+visit;
- }
- if(!c.posyandu || String(c.posyandu).toUpperCase()==='TIDAK TERCATAT'){
-   return 'Lengkapi pencatatan Posyandu dan pastikan anak masuk pemantauan rutin. '+visit;
- }
- return 'Pantau rutin di Posyandu/Puskesmas sesuai jadwal dan Buku KIA.';
+ return {rujuk,kunj,body,belum};
+}
+function rekomendasiHTML(c){
+ const d=rekomendasiData(c);
+ const out=[];
+ if(d.rujuk) out.push('<p style="margin:4px 0"><b>⚠️ Verifikasi nakes, sarankan rujuk ke Puskesmas.</b></p>');
+ if(d.kunj) out.push('<p style="margin:4px 0"><b>🏠 Anak termasuk sasaran kunjungan rumah.</b></p>');
+ out.push(`<p style="margin:4px 0">${esc(d.body)}</p>`);
+ return out.join('');
+}
+function rekomendasiSingkat(c){
+ const d=rekomendasiData(c);
+ const lines=[];
+ if(d.rujuk) lines.push('⚠️ Verifikasi nakes, sarankan rujuk ke Puskesmas.');
+ if(d.kunj) lines.push('🏠 Anak termasuk sasaran kunjungan rumah.');
+ lines.push(d.body);
+ return lines.join(' ');
 }
 
 function rujukanPuskesmas(c){
@@ -776,27 +802,27 @@ function rujukanPuskesmas(c){
  const noRise2=String(c.noRise2||"")==="1";
  const alasan=[];
  if(noRise2) alasan.push('BB tidak naik 2 kali berturut-turut (2T)');
- if(bu==='sangat kurang' || bu==='kurang') alasan.push('BB/U di bawah kategori normal (Kurang/Sangat Kurang)');
- if(bt.includes('gizi kurang') || bt.includes('gizi buruk')) alasan.push('indikasi Gizi Kurang/Gizi Buruk');
- if(tu==='pendek' || tu==='sangat pendek') alasan.push('kecurigaan stunting (TB/U Pendek/Sangat Pendek)');
+ if(bu==='sangat kurang' || bu==='kurang') alasan.push(`BB/U ${st["BB/U"]||bu}`);
+ if(bt.includes('gizi kurang') || bt.includes('gizi buruk')) alasan.push(`BB/TB ${st["BB/TB"]||bt}`);
+ if(tu==='pendek' || tu==='sangat pendek') alasan.push(`TB/U ${st["TB/U"]||tu} (kecurigaan stunting)`);
  return alasan;
 }
 function referralGuidanceHTML(c){
  const alasan=rujukanPuskesmas(c);
  const dynamic=alasan.length
-   ? `<p style="font-size:12px;margin:7px 0"><b>⚠️ Berdasarkan data anak ini, perlu diarahkan ke Puskesmas karena:</b> ${esc(alasan.join('; '))}.</p>`
-   : `<p style="font-size:12px;margin:7px 0"><b>ℹ️ Tidak ada kriteria rujukan otomatis yang teridentifikasi dari data pertumbuhan terakhir.</b> Tetap rujuk ke Puskesmas bila hasil pemeriksaan Posyandu menemukan tanda bahaya/indikasi klinis.</p>`;
+   ? `<p style="font-size:12px;margin:7px 0"><b>⚠️ Berdasarkan data pertumbuhan terakhir, anak perlu diarahkan ke Puskesmas karena:</b> ${esc(alasan.join('; '))}.</p>`
+   : `<p style="font-size:12px;margin:7px 0"><b>ℹ️ Tidak ada kriteria rujukan pertumbuhan yang teridentifikasi otomatis dari data terakhir.</b> Penilaian tetap dilakukan berdasarkan hasil pengukuran dan pemeriksaan langsung.</p>`;
  return `<div class="sourcebox" style="border-left:4px solid #d97706;background:#fffbeb;border-color:#f3d39a;margin-top:12px">
-   <b>🏥 Kapan Anak Harus Dirujuk ke Puskesmas?</b>
-   ${dynamic}
+   <b style="color:#92400e">🏥 Rujuk ke Puskesmas</b>
+   <p style="font-size:12px;line-height:1.55;margin:7px 0"><b>Anak diarahkan ke Puskesmas untuk verifikasi status gizi dan penilaian tenaga kesehatan apabila ditemukan:</b></p>
    <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">
-    <li>Berat badan tidak naik atau trennya mendatar/turun sebanyak <b>2 kali berturut-turut (2T)</b>.</li>
-    <li>Berat badan berada di <b>bawah garis merah (BGM)</b> pada KMS.</li>
-    <li>Berat badan berada di <b>bawah garis oranye</b> atau anak terindikasi mengalami gizi kurang/gizi buruk.</li>
-    <li><b>LiLA berada di zona merah</b> pada anak usia 6–59 bulan.</li>
-    <li>Ada <b>kecurigaan stunting</b>, yaitu panjang/tinggi badan anak tidak sesuai dengan grafik pertumbuhan usianya.</li>
+    <li><b>BB/U Kurang atau Sangat Kurang.</b></li>
+    <li><b>BB/TB menunjukkan Gizi Kurang atau Gizi Buruk.</b></li>
+    <li><b>TB/U Pendek atau Sangat Pendek</b> sebagai kecurigaan masalah pertumbuhan linier/stunting.</li>
+    <li><b>Berat badan tidak naik 2 kali berturut-turut (2T).</b></li>
    </ul>
-   <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> kriteria BGM, garis oranye, dan LiLA memerlukan hasil pemeriksaan/pengukuran di lapangan. SI-MANIS tidak menetapkan diagnosis secara otomatis; kader mengarahkan anak ke Puskesmas untuk penilaian tenaga kesehatan.</p>
+   ${dynamic}
+   <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> kriteria di atas merupakan tanda untuk penguatan tindak lanjut dan verifikasi oleh tenaga kesehatan, bukan diagnosis otomatis SI-MANIS. Temuan lapangan seperti BGM, kondisi di bawah garis oranye, LiLA zona merah, atau tanda bahaya klinis tetap memerlukan penilaian langsung sesuai hasil pemeriksaan.</p>
  </div>`;
 }
 
@@ -989,7 +1015,7 @@ function render(){
    <span class="score-chip ${sc}">${esc(cat)} • skor ${esc(score)}</span></div>
    <div class="chips"><span class="chip">BB/U: ${esc((document.getElementById("month")?.value?monthStatus(c,document.getElementById("month").value).bb_u:c.lastBB)||"- ")}</span><span class="chip">TB/U: ${esc((document.getElementById("month")?.value?monthStatus(c,document.getElementById("month").value).tb_u:c.lastTB)||"- ")}</span><span class="chip">BB/TB: ${esc((document.getElementById("month")?.value?monthStatus(c,document.getElementById("month").value).bb_tb:c.lastBBTB)||"- ")}</span><span class="chip">${document.getElementById("month")?.value?(isTidakDiukur(c,document.getElementById("month").value)?"Bulan: "+({Jan:"Januari",Feb:"Februari",Mar:"Maret",Apr:"April",Mei:"Mei",Jun:"Juni",Jul:"Juli",Agu:"Agustus",Sep:"September"}[document.getElementById("month").value])+" • TIDAK DIUKUR":"Bulan: "+({Jan:"Januari",Feb:"Februari",Mar:"Maret",Apr:"April",Mei:"Mei",Jun:"Juni",Jul:"Juli",Agu:"Agustus",Sep:"September"}[document.getElementById("month").value])):"Terakhir: "+(c.lastDate||c.lastMonth)}</span></div>
    <div class="meta"><b>Faktor:</b> ${esc(isTidakDiukur(c,selectedMonth)?"Tidak ada pengukuran pada bulan tersebut":faktorTampil(c))}</div>
-   <div class="meta"><b>Rekomendasi:</b> ${esc(isTidakDiukur(c,selectedMonth)?"Lakukan penjangkauan/kunjungan dan pengukuran pada kesempatan berikutnya. Jangan menetapkan kategori risiko tanpa data pengukuran bulan tersebut.":rekomendasiSingkat(c))}</div>
+   <div class="meta"><b>Rekomendasi:</b> ${isTidakDiukur(c,selectedMonth)?esc("Lakukan penjangkauan/kunjungan dan pengukuran pada kesempatan berikutnya. Jangan menetapkan kategori risiko tanpa data pengukuran bulan tersebut."):rekomendasiHTML(c)}</div>
    <button class="btn" onclick="openProfile(${children.indexOf(c)})">Profil dan Tindak Lanjut →</button>
   </div>`; }).join("") || '<div class="card">Tidak ada anak yang sesuai pencarian.</div>';
  renderPager();
@@ -1353,40 +1379,8 @@ function openProfile(idx){
     <div class="mini"><span>Status terakhir BB/U • TB/U • BB/TB</span><b style="font-size:12px">${esc(c.lastStatus?.["BB/U"]||"—")} • ${esc(c.lastStatus?.["TB/U"]||"—")} • ${esc(c.lastStatus?.["BB/TB"]||"—")}</b></div>
     <div class="mini"><span>Tindak lanjut</span><b style="font-size:12px">${(String(c.lastBBTB||"").toLowerCase().includes("risiko gizi lebih")||String(c.lastBBTB||"").toLowerCase().includes("gizi lebih")||String(c.lastBBTB||"").toLowerCase().includes("obesitas")||String(c.lastStatus?.["BB/U"]||"").toLowerCase().includes("risiko lebih"))?"PEMANTAUAN RISIKO GIZI LEBIH":"Sesuai masalah gizi"}</b></div>
   </div>
-  <div class="card" style="box-shadow:none;background:#fafdfc"><b>Faktor risiko</b><p style="font-size:12px">${esc(faktorTampil(c))}</p><b>Rekomendasi</b><p style="font-size:12px">${esc(rekomendasiSingkat(c))}</p></div>
-  ${(()=>{
-    const bu=String(c.lastStatus?.["BB/U"]||c.lastBB||"").toLowerCase().trim();
-    const tu=String(c.lastStatus?.["TB/U"]||c.lastTB||"").toLowerCase().trim();
-    const bt=String(c.lastStatus?.["BB/TB"]||c.lastBBTB||"").toLowerCase().trim();
-    const noRise=String(c.noRise||"")==="1";
-    const noRise2=String(c.noRise2||"")==="1";
-    const alasan=[];
-    if(noRise2) alasan.push("BB tidak naik 2 kali berturut-turut (2T)");
-    if(bu.includes("sangat kurang")||bu==="kurang") alasan.push("BB/U Kurang atau Sangat Kurang");
-    if(bt.includes("gizi buruk")||bt.includes("gizi kurang")) alasan.push("indikasi Gizi Kurang/Gizi Buruk");
-    if(tu.includes("pendek")||tu.includes("sangat pendek")) alasan.push("kecurigaan pertumbuhan pendek/stunting");
-    if(!alasan.length && noRise) alasan.push("BB tidak naik pada pengukuran terakhir");
-    return `<div class="sourcebox" style="border-left:4px solid #b45309;background:#fffaf0;border-color:#f3d08a">
-      <b style="color:#92400e">🏥 Rujuk/Datang ke Puskesmas</b>
-      <p style="font-size:12px;line-height:1.55;margin:7px 0"><b>Anak perlu dibawa ke Puskesmas untuk pemeriksaan dan penilaian tenaga kesehatan apabila ditemukan:</b></p>
-      <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">
-        <li>Berat badan tidak naik <b>2 kali berturut-turut (2T)</b>.</li>
-        <li>Berat badan berada <b>di bawah garis merah (BGM)</b> pada KMS/grafik pertumbuhan.</li>
-        <li>Berat badan berada <b>di bawah garis oranye</b> atau terdapat indikasi gizi kurang/gizi buruk.</li>
-        <li><b>LiLA zona merah</b> pada anak usia 6–59 bulan.</li>
-        <li>Terdapat <b>kecurigaan stunting</b> berdasarkan grafik pertumbuhan atau hasil TB/U.</li>
-      </ul>
-      ${alasan.length?`<p style="font-size:12px;margin:9px 0 0;color:#92400e"><b>Indikasi pada data anak ini:</b> ${esc(alasan.join('; '))}. <b>→ Arahkan ke Puskesmas untuk verifikasi dan pemeriksaan lebih lanjut.</b></p>`:`<p style="font-size:11px;margin:9px 0 0;color:#64748b">Jika salah satu tanda di atas ditemukan saat pelayanan Posyandu, kader mengarahkan anak ke Puskesmas. Kriteria BGM, garis oranye, dan LiLA memerlukan hasil pengukuran/pemeriksaan lapangan.</p>`}
-    </div>`;
-  })()}
-
-${t?`<div class="sourcebox" style="border-left:4px solid #0f766e">
-    <b>📘 Rekomendasi tatalaksana berbasis Juknis PMT Lokal 2025</b>
-    <p style="font-size:12px;margin:7px 0"><b>Fokus:</b> ${esc(t.utama)}</p>
-    <ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">${t.out.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
-    <p style="font-size:11px;margin:9px 0 0;color:#475569"><b>Catatan:</b> rekomendasi ini ditampilkan hanya bila terdapat masalah gizi/kondisi yang sesuai dengan data terakhir. Rekomendasi merupakan dukungan keputusan berbasis data, bukan diagnosis. Konfirmasi status gizi dan keputusan klinis tetap dilakukan tenaga kesehatan.</p>
-  </div>`:""}
-  ${referralGuidanceHTML(c)}
+  <div class="card" style="box-shadow:none;background:#fafdfc"><b>Faktor risiko</b><p style="font-size:12px">${esc(faktorTampil(c))}</p><b>Rekomendasi</b><div style="font-size:12px;line-height:1.6;margin-top:5px">${rekomendasiHTML(c)}</div></div>
+  ${t?`<div class="sourcebox" style="border-left:4px solid #0f766e;background:#f0fdfa;border-color:#99d8d0;margin-top:12px"><b style="color:#0f766e">🍽️ Rekomendasi tatalaksana berbasis Juknis PMT Lokal 2025</b><p style="font-size:12px;margin:7px 0"><b>Fokus:</b> ${esc(t.utama)}</p><ul style="font-size:12px;line-height:1.6;margin:6px 0 0 18px">${t.out.map(x=>`<li>${esc(x)}</li>`).join('')}</ul><p style="font-size:11px;line-height:1.5;margin:8px 0 0;color:#475569"><b>Catatan:</b> rekomendasi ditampilkan berdasarkan data terakhir dan merupakan dukungan keputusan, bukan diagnosis. Konfirmasi status gizi dan keputusan klinis tetap dilakukan tenaga kesehatan.</p></div>`:''}
 
   <h3>📏 Riwayat pengukuran Januari–September 2026</h3>
   <div style="overflow:auto"><table class="history"><thead><tr><th>Tanggal Pengukuran</th><th>Umur saat pengukuran</th><th>BB (kg)</th><th>PB/TB (cm)</th><th>BB/U</th><th>TB/U</th><th>BB/TB</th><th>Z BB/U</th><th>Z TB/U</th><th>Z BB/TB</th><th>Naik / Tidak Naik</th><th>Posyandu</th></tr></thead><tbody>${ukur||'<tr><td colspan="12">Tidak ada data pengukuran.</td></tr>'}</tbody></table></div>
