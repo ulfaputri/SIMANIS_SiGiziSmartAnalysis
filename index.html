@@ -455,6 +455,22 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
 @media (min-width: 701px) and (max-width: 1100px) { body.page-home #dashboardHome > .metrics-summary { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
 @media (max-width: 700px) { body.page-home #dashboardHome > .metrics-summary { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 </style>
+
+<style id="simanis-village-issue-recommendation-css">
+.village-issue-panel{margin-top:14px;border:1px solid #cfe2ef;border-radius:13px;background:linear-gradient(180deg,#f4fbff,#fff);padding:14px}
+.village-issue-panel h3{margin:0 0 5px;color:#075985;font-size:17px}
+.village-issue-intro{font-size:12px;color:#526b7e;line-height:1.5;margin:0 0 12px}
+.village-issue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.village-issue-card{border:1px solid #d8e7f0;border-radius:11px;background:#fff;padding:12px;min-width:0}
+.village-issue-card h4{font-size:14px;color:#174765;margin:0 0 8px}
+.village-issue-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:9px}
+.village-issue-metric{border-radius:8px;background:#f5f9fc;padding:8px;font-size:11px;color:#3f596b}
+.village-issue-metric b{display:block;font-size:18px;color:#123b61;margin-bottom:2px}
+.village-issue-band{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;margin:0 0 8px}
+.village-issue-list{font-size:12px;line-height:1.5;color:#334e60;margin:4px 0 0;padding-left:18px}
+.village-issue-source{font-size:10px;color:#64748b;line-height:1.45;margin:10px 0 0}
+@media(max-width:700px){.village-issue-grid{grid-template-columns:1fr}.village-issue-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
 </head>
 <body>
 <div id="simanisScoringNotice" style="display:none">Skor SI-MANIS: 0–2 HIJAU · 3–5 KUNING · ≥6 MERAH.</div>
@@ -542,6 +558,11 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
     </div>
     <div id="priorityMapSummary" class="priority-map-note" aria-live="polite"></div>
     <div id="priorityMapResult" class="priority-map"></div>
+    <section id="villageIssueRecommendations" class="village-issue-panel" aria-live="polite">
+      <h3>📊 Sebaran Masalah Gizi dan Rekomendasi per Desa</h3>
+      <p class="village-issue-intro">Ringkasan prevalensi stunting dan wasting berdasarkan pengukuran anak pada periode terpilih, disertai rekomendasi tindak lanjut tingkat wilayah. Kategori prevalensi digunakan untuk membaca masalah kesehatan masyarakat, bukan untuk menetapkan diagnosis atau tata laksana individu.</p>
+      <div id="villageIssueRecommendationsContent"></div>
+    </section>
 <div class="priority-legend"><span>🔴 Prioritas relatif 1</span><span>🟡 Prioritas relatif 2</span><span>🟢 Prioritas relatif berikutnya</span><span>⚪ Belum ada data</span></div>
     <p class="priority-map-note">Catatan: tampilan ini merupakan peta skematis berbasis desa dan Posyandu, bukan peta geografis atau batas administrasi. Urutan prioritas bersifat relatif pada pilihan indikator dan bulan, bukan kategori klinis baru. Klik kartu Posyandu untuk memfilter daftar anak pada Posyandu tersebut.</p>
   </details>
@@ -2104,6 +2125,65 @@ function renderPriorityMap(){
    }).join("");
    return `<div class="priority-village"><h3>📍 ${safe(g.name)}</h3><div class="village-meta">${g.cases} kasus dari ${g.denom} anak terukur</div><div class="priority-nodes">${nodes||'<div class="priority-node">Belum ada data Posyandu</div>'}</div></div>`;
  }).join("");
+
+ // Ringkasan prevalensi dan rekomendasi per desa dihitung terpisah dari skor risiko SI-MANIS.
+ // Setiap anak dihitung satu kali menggunakan pengukuran terakhir yang tersedia dalam periode terpilih.
+ const villageContent=document.getElementById("villageIssueRecommendationsContent");
+ if(villageContent){
+   const prevalenceCategory=(indicator,pct)=>{
+     if(!Number.isFinite(pct)) return {label:"Belum ada data",color:"#64748b",bg:"#f1f5f9"};
+     if(pct<2.5) return {label:"Sangat rendah",color:"#166534",bg:"#dcfce7"};
+     if(indicator==="stunting"){
+       if(pct<10) return {label:"Rendah",color:"#3f6212",bg:"#ecfccb"};
+       if(pct<20) return {label:"Sedang",color:"#854d0e",bg:"#fef3c7"};
+       if(pct<30) return {label:"Tinggi",color:"#9a3412",bg:"#ffedd5"};
+       return {label:"Sangat tinggi",color:"#9f1239",bg:"#ffe4e6"};
+     }
+     if(pct<5) return {label:"Rendah",color:"#3f6212",bg:"#ecfccb"};
+     if(pct<10) return {label:"Sedang",color:"#854d0e",bg:"#fef3c7"};
+     if(pct<15) return {label:"Tinggi",color:"#9a3412",bg:"#ffedd5"};
+     return {label:"Sangat tinggi",color:"#9f1239",bg:"#ffe4e6"};
+   };
+   const villageStats=desaNames.map(desa=>{
+     const members=children.filter(c=>String(c.desa||"-").trim().toUpperCase()===desa && measuredInPeriod(c));
+     const assessed=members.map(c=>({child:c,record:latestPeriodRecord(c)})).filter(x=>x.record);
+     const n=assessed.length;
+     const stunting=assessed.filter(x=>["Pendek","Sangat Pendek"].includes(x.record.tb_u)).length;
+     const wasting=assessed.filter(x=>["Gizi Kurang","Gizi Buruk"].includes(x.record.bb_tb)).length;
+     const underweight=assessed.filter(x=>["Kurang","Sangat Kurang"].includes(x.record.bb_u)).length;
+     return {desa,n,stunting,wasting,underweight,stuntingPct:n?stunting/n*100:NaN,wastingPct:n?wasting/n*100:NaN};
+   });
+   const pctText=v=>Number.isFinite(v)?v.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:2})+"%":"—";
+   const indicatorCard=(label,count,n,pct,indicator)=>{
+     const band=prevalenceCategory(indicator,pct);
+     return `<div class="village-issue-metric"><b>${count} <span style="font-size:11px;font-weight:600">anak</span></b>${label}<br>${pctText(pct)} dari ${n} anak terukur<br><span class="village-issue-band" style="color:${band.color};background:${band.bg};margin-top:6px;margin-bottom:0">${band.label}</span></div>`;
+   };
+   const adviceFor=(stat)=>{
+     const advice=[];
+     if(Number.isFinite(stat.stuntingPct) && stat.stuntingPct>=20){
+       advice.push(`<li><b>Stunting ${stat.stuntingPct>=30?"sangat tinggi":"tinggi"}:</b> verifikasi kembali umur, panjang/tinggi badan, dan hasil TB/U; susun daftar anak pendek/sangat pendek untuk tindak lanjut individual.</li>`);
+       advice.push(`<li>Perkuat konseling pemberian makan sesuai usia, pemantauan pertumbuhan, penilaian riwayat penyakit, serta kunjungan rumah bagi anak yang tidak hadir atau pertumbuhannya bermasalah.</li>`);
+     } else if(Number.isFinite(stat.stuntingPct) && stat.stuntingPct>=10){
+       advice.push(`<li><b>Stunting kategori sedang:</b> lanjutkan pemantauan pertumbuhan, konseling pemberian makan sesuai usia, dan tindak lanjut anak dengan TB/U pendek/sangat pendek.</li>`);
+     } else {
+       advice.push(`<li>Untuk stunting, pertahankan pengukuran panjang/tinggi badan yang akurat dan pemantauan rutin; tindak lanjuti setiap anak yang teridentifikasi bermasalah.</li>`);
+     }
+     if(Number.isFinite(stat.wastingPct) && stat.wastingPct>=10){
+       advice.push(`<li><b>Wasting ${stat.wastingPct>=15?"sangat tinggi":"tinggi"}:</b> prioritaskan penilaian anak dengan BB/TB gizi kurang atau gizi buruk, konfirmasi pengukuran, dan lakukan pemeriksaan klinis sesuai SOP. Anak dengan tanda bahaya/komplikasi perlu dirujuk segera sesuai pedoman.</li>`);
+       advice.push(`<li>Pastikan tindak lanjut berat badan, konseling asupan, dan intervensi gizi sesuai hasil pemeriksaan serta pedoman yang berlaku.</li>`);
+     } else if(Number.isFinite(stat.wastingPct) && stat.wastingPct>=5){
+       advice.push(`<li><b>Wasting kategori sedang:</b> tingkatkan penemuan dini dan pemantauan BB/TB; pastikan anak yang teridentifikasi memperoleh penilaian dan tindak lanjut sesuai pedoman.</li>`);
+     } else {
+       advice.push(`<li>Untuk wasting, lanjutkan skrining BB/TB dan tindak lanjuti anak dengan hasil gizi kurang/gizi buruk sesuai pedoman.</li>`);
+     }
+     advice.push(`<li>Bahas daftar sasaran bersama kader dan keluarga, dokumentasikan tindak lanjut, lalu evaluasi kembali pada pengukuran berikutnya.</li>`);
+     return `<ul class="village-issue-list">${advice.join("")}</ul>`;
+   };
+   villageContent.innerHTML=`<div class="village-issue-grid">${villageStats.map(stat=>{
+     const stBand=prevalenceCategory("stunting",stat.stuntingPct), waBand=prevalenceCategory("wasting",stat.wastingPct);
+     return `<article class="village-issue-card"><h4>📍 Desa ${safe(stat.desa.replace(/^./,c=>c.toUpperCase()).toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))}</h4><div class="village-issue-metrics">${indicatorCard("Stunting",stat.stunting,stat.n,stat.stuntingPct,"stunting")}${indicatorCard("Wasting",stat.wasting,stat.n,stat.wastingPct,"wasting")}</div><div class="village-issue-metric" style="margin-bottom:8px"><b style="font-size:15px">${stat.underweight} anak • ${pctText(stat.n?stat.underweight/stat.n*100:NaN)}</b>Underweight (BB/U) — ditampilkan sebagai prevalensi aktual, tanpa kategori cutoff</div><b style="font-size:12px;color:#174765">Rekomendasi tindak lanjut wilayah</b>${adviceFor(stat)}</article>`;
+   }).join("")}</div><p class="village-issue-source"><b>Dasar kategori prevalensi:</b> de Onis M, et al. (2018), <i>Prevalence thresholds for wasting, overweight and stunting in children under 5 years</i>, <i>Public Health Nutrition</i> 22(1):175–179; ditampilkan pada WHO Nutrition Landscape Information System (NLiS). Stunting: &lt;2,5% sangat rendah; 2,5–&lt;10% rendah; 10–&lt;20% sedang; 20–&lt;30% tinggi; ≥30% sangat tinggi. Wasting: &lt;2,5% sangat rendah; 2,5–&lt;5% rendah; 5–&lt;10% sedang; 10–&lt;15% tinggi; ≥15% sangat tinggi. Underweight tidak diberi kategori cutoff dari rujukan ini. Rekomendasi merupakan arahan program tingkat wilayah; keputusan tata laksana tetap berdasarkan penilaian individual dan pedoman klinis yang berlaku.</p>`;
+ }
 }
 function filterPriorityPos(name){
  const pos=document.getElementById("pos");
@@ -2565,6 +2645,12 @@ body{background:linear-gradient(135deg,#f4fbff 0%,#f7fcfb 55%,#f8fbff 100%)}
  document.getElementById('archiveYearFilter')?.addEventListener('change',()=>render());search.addEventListener('input',()=>{page=1;render()});render();
 })();
 </script>
+<!-- VISIBILITY: village-level issue summary only on Home page -->
+<style id="village-issue-home-only">
+/* Ringkasan sebaran masalah dan rekomendasi hanya ditampilkan pada Beranda.
+   Panel peta dan seluruh logika/data lainnya tetap sama pada menu Data & Peta. */
+body.page-data #villageIssueRecommendations { display: none !important; }
+</style>
 </body></html>
 <style id="simanis-v17-fixes">
 /* v17: modal/profile berada di atas sidebar desktop agar rekomendasi tidak tertutup */
