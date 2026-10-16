@@ -471,6 +471,19 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
 .village-issue-source{font-size:10px;color:#64748b;line-height:1.45;margin:10px 0 0}
 @media(max-width:700px){.village-issue-grid{grid-template-columns:1fr}.village-issue-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
+
+<style id="simanis-home-heading-consistency">
+/* Hanya menyeragamkan ukuran judul bagian rekap/tren Beranda. Data dan JavaScript tidak diubah. */
+#dashboardHome > .chartgrid > .card > h2,
+#dashboardHome > .chartgrid > .card details > summary,
+#nutritionTrendCard > details > summary,
+#geoTrendCard > details > summary,
+#archive2025ToggleHome {
+  font-size: 16px !important;
+  line-height: 1.35 !important;
+  font-weight: 800 !important;
+}
+</style>
 </head>
 <body>
 <div id="simanisScoringNotice" style="display:none">Skor SI-MANIS: 0–2 HIJAU · 3–5 KUNING · ≥6 MERAH.</div>
@@ -511,7 +524,7 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
 <section class="section chartgrid">
   <div class="card" style="grid-column:1/-1"><h2>📊 Rekap sasaran Januari–September 2026</h2><p class="help">Grafik menunjukkan total sasaran per bulan: balita yang diukur + balita yang tercatat tidak diukur.</p></div>
   <div class="card" style="grid-column:1/-1"><details>
-    <summary style="cursor:pointer;font-weight:800;color:var(--primary2)">📈 Trend total sasaran per bulan (klik untuk melihat)</summary>
+    <summary style="cursor:pointer;font-weight:800;color:var(--primary2)">📈 Tren total sasaran per bulan (klik untuk melihat)</summary>
     <p class="help" style="margin-top:10px">Angka di atas batang menunjukkan total sasaran.</p><div class="chart" id="chartTotal"></div>
   </details></div>
   <div class="card" style="grid-column:1/-1"><details>
