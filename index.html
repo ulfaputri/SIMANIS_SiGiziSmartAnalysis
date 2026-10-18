@@ -2303,12 +2303,31 @@ function renderPriorityMap(){
        '<b>Lakukan skrining faktor risiko</b> seperti pola makan, riwayat sakit, dan kondisi sanitasi.'
      ];
      if(!(Number.isFinite(stat.stuntingPct)&&stat.stuntingPct>=10)) stItems.splice(1,1,'<b>Pertahankan edukasi pencegahan</b> dan pastikan pengukuran panjang/tinggi badan dilakukan dengan benar.');
-     const waItems=[
-       '<b>Tingkatkan penemuan dini</b> dan pemantauan status gizi (BB/TB) secara rutin.',
-       '<b>Lakukan penilaian individual</b>, termasuk riwayat sakit dan asupan makan.',
-       '<b>Tindak lanjuti anak</b> dengan hasil gizi kurang atau gizi buruk sesuai pedoman.',
-       '<b>Konseling pemberian makan</b> dan tata laksana anak sakit di tingkat keluarga.'
-     ];
+     // Rekomendasi wasting dibedakan menurut kategori prevalensi wilayah.
+     // Kategori hanya menentukan fokus program wilayah; penanganan anak tetap berdasarkan penilaian individual.
+     let waItems;
+     if(waBand==='sangat rendah'||waBand==='rendah'){
+       waItems=[
+         '<b>Pertahankan skrining rutin</b> BB/TB di Posyandu untuk menemukan anak berisiko sejak dini.',
+         '<b>Perkuat penyuluhan pencegahan</b> tentang pemberian makan sesuai usia dan saat anak sakit.',
+         '<b>Berikan konseling terarah</b> kepada keluarga anak yang hasil pengukurannya perlu perhatian.',
+         '<b>Pantau perubahan prevalensi</b> dan tindak lanjuti setiap anak dengan hasil gizi kurang atau gizi buruk sesuai pedoman.'
+       ];
+     }else if(waBand==='sedang'){
+       waItems=[
+         '<b>Tingkatkan penemuan dini</b> dan verifikasi hasil pengukuran BB/TB secara rutin.',
+         '<b>Prioritaskan penilaian individual</b> pada anak yang teridentifikasi bermasalah, termasuk riwayat sakit dan asupan makan.',
+         '<b>Lakukan kunjungan rumah</b> bagi anak berisiko atau yang belum terjangkau untuk konseling keluarga.',
+         '<b>Evaluasi kasus bersama Puskesmas dan kader</b> serta tindak lanjuti anak sesuai pedoman yang berlaku.'
+       ];
+     }else{
+       waItems=[
+         '<b>Perkuat skrining dan konfirmasi pengukuran</b> BB/TB untuk memastikan anak yang berisiko segera teridentifikasi.',
+         '<b>Prioritaskan penilaian individual dan tindak lanjut cepat</b> bagi anak dengan hasil gizi kurang atau gizi buruk.',
+         '<b>Telusuri hambatan keluarga melalui kunjungan rumah</b> dan berikan konseling sesuai kebutuhan anak.',
+         '<b>Koordinasikan pemantauan kasus secara berkala</b> dengan Puskesmas dan kader; lakukan rujukan sesuai kondisi klinis dan pedoman.'
+       ];
+     }
      const uwItems=[
        '<b>Prioritaskan penimbangan ulang</b> dan pemantauan kenaikan berat badan.',
        '<b>Lakukan konseling pola makan</b>, frekuensi, dan porsi sesuai usia.',
@@ -3133,4 +3152,74 @@ body{font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif!important;color:var(--
 .village-program-actions li:last-child{padding-bottom:0!important}
 .village-program-actions li::marker{color:var(--topic,#e11d48)!important}
 @media(max-width:760px){.village-program-row{grid-template-columns:minmax(0,1fr)!important}.village-program-actions{padding:15px 16px 15px 32px!important}}
+</style>
+
+
+<style id="simanis-village-columns-consistency">
+/* Menyamakan gaya dan proporsi kedua kolom desa; isi rekomendasi tetap spesifik per desa. */
+#villageIssueRecommendationsContent .village-issue-grid{
+  align-items:stretch!important;
+  grid-auto-rows:1fr!important;
+  gap:14px!important;
+}
+#villageIssueRecommendationsContent .village-issue-card{
+  box-sizing:border-box!important;
+  height:100%!important;
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#villageIssueRecommendationsContent .village-issue-village{
+  min-height:28px!important;
+  margin-bottom:10px!important;
+  font-size:16px!important;
+  line-height:1.4!important;
+}
+#villageIssueRecommendationsContent .village-issue-metrics{
+  width:100%!important;max-width:none!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:8px!important;
+}
+#villageIssueRecommendationsContent .village-issue-metric{
+  box-sizing:border-box!important;
+  min-width:0!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+}
+#villageIssueRecommendationsContent .village-underweight-summary{
+  width:100%!important;max-width:none!important;
+  min-height:66px!important;
+  margin-bottom:10px!important;
+}
+#villageIssueRecommendationsContent .village-program-rows{
+  display:flex!important;flex-direction:column!important;gap:9px!important;
+  flex:1 0 auto!important;margin-top:7px!important;
+}
+#villageIssueRecommendationsContent .village-program-row{
+  box-sizing:border-box!important;width:100%!important;
+  min-width:0!important;
+}
+#villageIssueRecommendationsContent .village-program-topic{
+  box-sizing:border-box!important;min-width:0!important;
+}
+#villageIssueRecommendationsContent .village-program-actions{
+  box-sizing:border-box!important;min-width:0!important;
+  font-size:12.5px!important;line-height:1.5!important;
+}
+#villageIssueRecommendationsContent .village-program-actions li{
+  line-height:1.5!important;margin-bottom:7px!important;
+}
+#villageIssueRecommendationsContent .village-program-actions li:last-child{margin-bottom:0!important}
+@media(max-width:900px){
+  #villageIssueRecommendationsContent .village-issue-grid{grid-template-columns:1fr!important;grid-auto-rows:auto!important}
+  #villageIssueRecommendationsContent .village-issue-card{height:auto!important}
+}
+</style>
+
+<!-- Visual-only fix: make selected map period legible; existing logic untouched -->
+<style id="map-period-visibility-fix">
+.priority-schematic-heading{align-items:center;gap:12px;margin-bottom:12px}
+.priority-schematic-heading b{font-size:clamp(15px,1.25vw,18px);font-weight:800;line-height:1.35;color:#fff}
+.priority-schematic-heading span{display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:7px 12px;border-radius:9px;background:#e0f2fe;border:1px solid #7dd3fc;color:#075985!important;font-size:14px!important;font-weight:800!important;line-height:1.4;letter-spacing:.1px;opacity:1!important;text-shadow:none!important;white-space:normal}
+@media(max-width:600px){.priority-schematic-heading{align-items:flex-start;flex-direction:column;gap:7px}.priority-schematic-heading span{font-size:13px!important;padding:6px 10px}}
 </style>
