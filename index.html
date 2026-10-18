@@ -485,8 +485,40 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
 .village-program-priority li:before{content:"✓";position:absolute;left:0;top:0;color:var(--topic);font-weight:900}
 .village-issue-source{font-size:11px;color:#64748b;line-height:1.5;margin:12px 2px 0}
 @media(max-width:1000px){.village-program-row{grid-template-columns:minmax(0,1fr) minmax(0,1.4fr)}.village-program-priority{grid-column:1/-1}.village-program-priority ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px 12px}}
+#priorityRecommendationPanel .priority-rec-list{display:grid;grid-template-columns:1fr;gap:10px}
+#priorityRecommendationPanel .priority-rec-card{border:1px solid #d8e7f0;border-radius:14px;background:linear-gradient(140deg,#fff,#fbfdff);padding:14px;min-width:0}
+#priorityRecommendationPanel .priority-rec-card h4{margin:0 0 7px;font-size:16px;color:#174765;overflow-wrap:anywhere}
+#priorityRecommendationPanel .priority-rec-meta{font-size:12px;line-height:1.5;color:#526b7e;margin:4px 0}
+#priorityRecommendationPanel .priority-rec-badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#eaf4ff;color:#075985;font-size:11px;font-weight:800;margin:0 5px 5px 0}
+#priorityRecommendationPanel .priority-rec-warning{margin:8px 0;padding:10px 12px;border:1px solid #f5d49a;border-radius:10px;background:#fffbeb;color:#854d0e;font-size:12px;line-height:1.5}
+#priorityRecommendationPanel .priority-rec-actions{font-size:12px;line-height:1.6;color:#263f59;padding-left:19px;margin:8px 0}
+#priorityRecommendationPanel .priority-rec-band{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;margin:4px 4px 4px 0}
+#priorityRecommendationPanel .priority-rec-muted{font-size:11px;color:#64748b;line-height:1.5;margin-top:12px}
+#priorityRecommendationPanel .priority-rec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(max-width:700px){#priorityRecommendationPanel .priority-rec-grid{grid-template-columns:1fr}}
 @media(max-width:650px){.village-issue-panel{padding:10px}.village-issue-card-featured{padding:10px}.village-issue-card h4.village-issue-village{font-size:16px}.village-issue-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.village-program-row{grid-template-columns:1fr;gap:8px;padding:9px}.village-program-topic{padding:10px}.village-program-topic h4{font-size:15px}.village-program-actions{padding:4px 0 4px 19px;font-size:12px}.village-program-priority{grid-column:auto}.village-program-priority ul{display:block}.village-issue-source{font-size:10px}}
 </style>
+
+<style id="priority-recommendation-home-minimal">
+/* Panel rekomendasi tampil mandiri hanya di Beranda, bukan di menu Data & Peta atau halaman lain. */
+body:not(.page-home) #priorityRecommendationPanel{display:none!important}
+#priorityRecommendationPanel{margin:14px 0 18px!important;padding:14px 16px!important;border:1px solid #dbe7ef!important;border-radius:14px!important;background:#fff!important;box-shadow:0 3px 12px rgba(18,59,97,.045)!important}
+#priorityRecommendationPanel .priority-rec-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+#priorityRecommendationPanel h3{font-size:18px!important;line-height:1.3!important;margin:0 0 4px!important;color:#174765!important;font-weight:800!important}
+#priorityRecommendationPanel .village-issue-intro{font-size:12px!important;line-height:1.45!important;margin:0 0 10px!important;color:#64748b!important}
+#priorityRecommendationPanel .priority-rec-list{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+#priorityRecommendationPanel .priority-rec-card{padding:10px 12px!important;border:1px solid #e2eaf0!important;border-radius:10px!important;background:#fff!important;box-shadow:none!important}
+#priorityRecommendationPanel .priority-rec-card h4{font-size:14px!important;line-height:1.35!important;margin:0 0 5px!important;color:#24465d!important}
+#priorityRecommendationPanel .priority-rec-meta{font-size:11px!important;line-height:1.45!important;margin:3px 0!important;color:#64748b!important}
+#priorityRecommendationPanel .priority-rec-badge{font-size:10px!important;padding:3px 7px!important;margin:0 4px 4px 0!important}
+#priorityRecommendationPanel .priority-rec-actions{font-size:11px!important;line-height:1.45!important;margin:5px 0!important;padding-left:16px!important;color:#40576a!important}
+#priorityRecommendationPanel .priority-rec-band{font-size:9px!important;padding:3px 6px!important;margin:3px 3px 3px 0!important}
+#priorityRecommendationPanel .priority-rec-warning{font-size:11px!important;padding:8px 10px!important;margin:7px 0!important;border-radius:8px!important}
+#priorityRecommendationPanel .priority-rec-muted{font-size:10px!important;line-height:1.4!important;margin-top:8px!important}
+#priorityRecommendationPanel .priority-rec-grid{gap:8px!important}
+@media(max-width:700px){#priorityRecommendationPanel{padding:11px!important}#priorityRecommendationPanel h3{font-size:16px!important}#priorityRecommendationPanel .priority-rec-list,#priorityRecommendationPanel .priority-rec-grid{grid-template-columns:1fr!important}}
+</style>
+
 </head>
 <body>
 <div id="simanisScoringNotice" style="display:none">Skor SI-MANIS: 0–2 HIJAU · 3–5 KUNING · ≥6 MERAH.</div>
@@ -608,6 +640,13 @@ body.page-home #dashboardHome > .metrics-summary { display: grid !important; }
 <div class="priority-legend"><span>🔴 Prioritas relatif 1</span><span>🟡 Prioritas relatif 2</span><span>🟢 Prioritas relatif berikutnya</span><span>⚪ Belum ada data</span></div>
     <p class="priority-map-note">Catatan: tampilan ini merupakan peta skematis berbasis desa dan Posyandu, bukan peta geografis atau batas administrasi. Urutan prioritas bersifat relatif pada pilihan indikator dan bulan, bukan kategori klinis baru. Klik kartu Posyandu untuk memfilter daftar anak pada Posyandu tersebut.</p>
   </details>
+</section>
+
+<section id="priorityRecommendationPanel" class="village-issue-panel" aria-live="polite">
+  <div class="priority-rec-heading">
+    <div><h3>📌 Rekomendasi Prioritas Posyandu</h3><p class="village-issue-intro">Fokus tindak lanjut berdasarkan masalah gizi pada periode terpilih.</p></div>
+  </div>
+  <div id="priorityRecommendationContent"></div>
 </section>
 
 <section class="section card" id="dataAnak">
@@ -2364,6 +2403,103 @@ function renderPriorityMap(){
      return `<article class="village-issue-card village-issue-card-featured"><h4 class="village-issue-village">📍 Desa ${safe(stat.desa.replace(/^./,c=>c.toUpperCase()).toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()))}</h4><div class="village-issue-metrics">${indicatorCard("Stunting",stat.stunting,stat.n,stat.stuntingPct,"stunting")}${indicatorCard("Wasting",stat.wasting,stat.n,stat.wastingPct,"wasting")}</div><div class="village-issue-metric village-underweight-summary"><b style="font-size:15px">${stat.underweight} anak • ${pctText(stat.n?stat.underweight/stat.n*100:NaN)}</b>Underweight (BB/U) — prevalensi aktual</div>${adviceFor(stat)}</article>`;
    }).join("")}</div><p class="village-issue-source"><b>Dasar kategori prevalensi:</b> de Onis M, et al. (2018), <i>Prevalence thresholds for wasting, overweight and stunting in children under 5 years</i>, <i>Public Health Nutrition</i> 22(1):175–179; ditampilkan pada WHO Nutrition Landscape Information System (NLiS). Stunting: &lt;2,5% sangat rendah; 2,5–&lt;10% rendah; 10–&lt;20% sedang; 20–&lt;30% tinggi; ≥30% sangat tinggi. Wasting: &lt;2,5% sangat rendah; 2,5–&lt;5% rendah; 5–&lt;10% sedang; 10–&lt;15% tinggi; ≥15% sangat tinggi. Underweight tidak diberi kategori cutoff dari rujukan ini. Rekomendasi wilayah mengacu pada prinsip surveilans gizi, konvergensi lintas sektor di desa, serta penemuan dan penanganan kasus gizi. Penanganan individual tetap berdasarkan penilaian tenaga kesehatan dan pedoman klinis yang berlaku.</p>`;
  }
+
+ // Panel tambahan: prioritas Posyandu berdasarkan peringkat relatif indikator, terpisah dari skor risiko SI-MANIS.
+ renderPriorityRecommendation({groups,all,issue,selectedMonths,periodLabel,children,latestPeriodRecord,measuredInPeriod});
+}
+function renderPriorityRecommendation(ctx){
+ const target=document.getElementById("priorityRecommendationContent");
+ if(!target||!ctx) return;
+ const {groups,all,issue,selectedMonths,periodLabel,children,latestPeriodRecord,measuredInPeriod}=ctx;
+ const safe=v=>typeof esc==="function"?esc(v):String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+ const pctText=v=>Number.isFinite(v)?v.toLocaleString("id-ID",{minimumFractionDigits:1,maximumFractionDigits:2})+"%":"—";
+ const bandFor=(indicator,pct)=>{
+   if(!Number.isFinite(pct)) return {label:"Belum ada data",color:"#64748b",bg:"#f1f5f9"};
+   if(pct<2.5) return {label:"Sangat rendah",color:"#166534",bg:"#dcfce7"};
+   if(indicator==="stunting"){
+     if(pct<10)return {label:"Rendah",color:"#3f6212",bg:"#ecfccb"};
+     if(pct<20)return {label:"Sedang",color:"#854d0e",bg:"#fef3c7"};
+     if(pct<30)return {label:"Tinggi",color:"#9a3412",bg:"#ffedd5"};
+     return {label:"Sangat tinggi",color:"#9f1239",bg:"#ffe4e6"};
+   }
+   if(pct<5)return {label:"Rendah",color:"#3f6212",bg:"#ecfccb"};
+   if(pct<10)return {label:"Sedang",color:"#854d0e",bg:"#fef3c7"};
+   if(pct<15)return {label:"Tinggi",color:"#9a3412",bg:"#ffedd5"};
+   return {label:"Sangat tinggi",color:"#9f1239",bg:"#ffe4e6"};
+ };
+ const definitions=[
+   {key:"stunting",label:"Stunting",field:"tb_u",values:["Pendek","Sangat Pendek"],category:"stunting",advice:"Konfirmasi PB/TB oleh tenaga kesehatan, pantau PB/TB berkala, edukasi protein hewani dan pemberian makan sesuai usia."},
+   {key:"underweight",label:"BB kurang",field:"bb_u",values:["Kurang","Sangat Kurang"],category:null,advice:"Verifikasi, cek red flag, PMT Lokal 28 hari sesuai Juknis PMT Lokal 2025, pantau BB minggu 1."},
+   {key:"wasting",label:"Wasting",field:"bb_tb",values:["Gizi Kurang","Gizi Buruk"],category:"wasting",advice:"Konfirmasi status gizi di Puskesmas, PMT Lokal 56 hari bila tanpa red flag, rujuk bila BB tidak naik sampai 14 hari."},
+   {key:"risikoLebih",label:"Risiko gizi lebih",field:"bb_tb",values:["Risiko Gizi Lebih","Gizi Lebih","Obesitas"],category:"overweight",advice:"Bukan sasaran PMT Lokal; konseling pola makan dan pemantauan BB serta PB/TB."}
+ ];
+ const posMap=new Map();
+ (children||[]).forEach(child=>{
+   if(!measuredInPeriod(child))return;
+   const raw=String(child.posyandu||"").trim().toUpperCase();
+   const name=raw||"TIDAK TERCATAT";
+   const rec=latestPeriodRecord(child);
+   if(!rec)return;
+   if(!posMap.has(name))posMap.set(name,{name,denom:0,records:[]});
+   const row=posMap.get(name);row.denom++;row.records.push(rec);
+ });
+ const rows=[...posMap.values()].map(p=>{
+   p.metrics={};
+   definitions.forEach(d=>{
+     const cases=p.records.filter(r=>d.values.includes(String(r[d.field]||"").trim())).length;
+     p.metrics[d.key]={cases,denom:p.denom,pct:p.denom?cases/p.denom*100:NaN,rank:null};
+   });
+   p.totalCases=p.metrics.stunting.cases+p.metrics.underweight.cases+p.metrics.wasting.cases;
+   p.points=0;p.reasons=[];
+   return p;
+ });
+ const sortMetric=(a,b,key)=>b.metrics[key].cases-a.metrics[key].cases||
+   (Number.isFinite(b.metrics[key].pct)?b.metrics[key].pct:-1)-(Number.isFinite(a.metrics[key].pct)?a.metrics[key].pct:-1)||
+   a.name.localeCompare(b.name,"id");
+ ["stunting","underweight","wasting","risikoLebih"].forEach(key=>{
+   const ranked=rows.filter(p=>p.denom>0).slice().sort((a,b)=>sortMetric(a,b,key));
+   ranked.forEach((p,i)=>{p.metrics[key].rank=i+1;});
+   if(key!=="risikoLebih") ranked.slice(0,3).forEach((p,i)=>{
+     const points=3-i;p.points+=points;
+     p.reasons.push(`${definitions.find(d=>d.key===key).label} #${i+1}`);
+   });
+ });
+ const scoreRows=rows.filter(p=>p.denom>0).sort((a,b)=>b.points-a.points||b.totalCases-a.totalCases||a.name.localeCompare(b.name,"id"));
+ const unrecorded=(children||[]).filter(c=>measuredInPeriod(c)&&(!String(c.posyandu||"").trim()||String(c.posyandu||"").trim().toUpperCase()==="TIDAK TERCATAT")).length;
+ const totalMeasured=rows.reduce((n,p)=>n+p.denom,0);
+ if(!totalMeasured){
+   target.innerHTML='<div class="followup-empty">Belum ada data pada periode ini</div><p class="priority-rec-muted">Urutan bersifat relatif pada periode terpilih, bukan diagnosis dan bukan kategori klinis baru.</p>';
+   return;
+ }
+ const bandMarkup=(key,p)=>{
+   const d=definitions.find(x=>x.key===key),m=p.metrics[key];
+   if(!d.category)return "";
+   const band=bandFor(d.category,m.pct);
+   return `<span class="priority-rec-band" style="color:${band.color};background:${band.bg}">${safe(d.label)}: ${safe(band.label)}</span>`;
+ };
+ const qualityWarnings=[];
+ if(unrecorded)qualityWarnings.push(`${unrecorded} anak belum tercatat Posyandu-nya; lengkapi agar peta akurat.`);
+ const warningMarkup=qualityWarnings.map(t=>`<div class="priority-rec-warning">⚠️ ${safe(t)}</div>`).join("");
+ const makeCard=(p,index,kind)=>{
+   const small=p.denom<40;
+   const reasonMarkup=p.reasons.length?p.reasons.map(s=>`<span class="priority-rec-badge">${safe(s)}</span>`).join(""):'<span class="priority-rec-badge">Belum masuk 3 besar indikator</span>';
+   const indicators=definitions.map(d=>{
+     const m=p.metrics[d.key],band=bandMarkup(d.key,p);
+     return `<div class="village-issue-metric"><b>${m.cases} <span style="font-size:11px;font-weight:600">kasus</span></b>${safe(d.label)}<br>${pctText(m.pct)} dari ${p.denom} anak terukur${band?`<br>${band}`:""}</div>`;
+   }).join("");
+   const activeAdvice=definitions.filter(d=>d.key!=="risikoLebih"&&p.metrics[d.key].rank<=3&&p.metrics[d.key].cases>0);
+   const riskAdvice=p.metrics.risikoLebih.rank<=3&&p.metrics.risikoLebih.cases>0?[definitions[3]]:[];
+   // Kartu jalur terpisah hanya menampilkan saran risiko gizi lebih sekali.
+   const advice=(kind==="separate"?riskAdvice:[...activeAdvice,...riskAdvice]).map(d=>`<li>${safe(d.advice)}</li>`).join("");
+   const heading=kind==="combined"?(index===0?"Prioritas 1":`Prioritas ${index+1}`):"Jalur terpisah • Risiko gizi lebih";
+   const scoreLine=kind==="combined"?`Skor gabungan: ${p.points} poin • Total kasus indikator: ${p.totalCases}`:`Peringkat risiko gizi lebih: #${p.metrics.risikoLebih.rank}`;
+   return `<article class="village-issue-card priority-rec-card"><h4>${safe(heading)} — ${safe(p.name)}</h4><div class="priority-rec-meta">${safe(scoreLine)} • ${p.denom} anak terukur</div>${small?'<div class="priority-rec-warning">Jumlah anak kecil, tafsirkan hati-hati (denominator kurang dari 40 anak).</div>':""}<div style="margin:8px 0">${reasonMarkup}</div><div class="village-issue-metrics">${indicators}</div>${kind==="combined"&&p.reasons.length===0?'<p class="priority-rec-meta">Tidak masuk tiga besar pada indikator gabungan yang dinilai.</p>':""}${advice?`<div class="priority-rec-meta"><b>Saran awal tindak lanjut</b></div><ul class="priority-rec-actions">${advice}</ul>`:""}</article>`;
+ };
+ const topFive=scoreRows.slice(0,5);
+ const combinedMarkup=topFive.length?`<div class="priority-rec-list">${topFive.map((p,i)=>makeCard(p,i,"combined")).join("")}</div>`:'<div class="followup-empty">Belum ada data pada periode ini</div>';
+ const riskRows=rows.filter(p=>p.metrics.risikoLebih.cases>0).sort((a,b)=>sortMetric(a,b,"risikoLebih")).slice(0,3);
+ const riskMarkup=riskRows.length?`<div class="priority-rec-grid">${riskRows.map((p,i)=>makeCard(p,i,"separate")).join("")}</div>`:'<div class="followup-empty">Belum ada kasus risiko gizi lebih pada periode ini.</div>';
+ target.innerHTML=`<p class="village-issue-intro">Periode: <b>${safe(periodLabel||selectedMonths.join(", "))}</b>. Setiap anak dihitung satu kali menggunakan pengukuran terakhir dalam periode terpilih.</p>${warningMarkup}<h4 class="village-issue-village">🏅 Prioritas gabungan: stunting, BB kurang, dan wasting</h4><p class="village-issue-intro">Poin peringkat: posisi 1 = 3 poin, posisi 2 = 2 poin, posisi 3 = 1 poin. Peringkat indikator ditentukan dari kasus menurun, prevalensi menurun, lalu nama A–Z.</p>${combinedMarkup}<h4 class="village-issue-village" style="margin-top:18px">🌿 Jalur terpisah: risiko gizi lebih</h4><p class="village-issue-intro">Risiko gizi lebih tidak menambah skor prioritas gabungan. Ditampilkan tersendiri untuk menentukan fokus konseling.</p>${riskMarkup}<p class="priority-rec-muted"><b>Catatan:</b> Saran awal untuk membantu perencanaan, bukan keputusan klinis. Keputusan tatalaksana dan rujukan ditetapkan tenaga kesehatan. Urutan bersifat relatif pada periode terpilih, bukan diagnosis dan bukan kategori klinis baru.</p>`;
 }
 function filterPriorityPos(name){
  const pos=document.getElementById("pos");
@@ -2462,7 +2598,7 @@ function downloadUnmeasuredCSV(){
 document.addEventListener('DOMContentLoaded',()=>{
   const links=[...document.querySelectorAll('[data-page]')];
   const archive2025=document.getElementById('dataTahun2025');
-  const homeEls=[document.querySelector('.home-hero'),document.querySelector('.wrap > .grid'),document.getElementById('priorityMapCard'),document.querySelector('.wrap > .chartgrid'),document.getElementById('nutritionTrendCard'),document.getElementById('geoTrendCard'),archive2025];
+  const homeEls=[document.querySelector('.home-hero'),document.querySelector('.wrap > .grid'),document.getElementById('priorityMapCard'),document.getElementById('priorityRecommendationPanel'),document.querySelector('.wrap > .chartgrid'),document.getElementById('nutritionTrendCard'),document.getElementById('geoTrendCard'),archive2025];
   let archive2025Visible=false;
   if(archive2025){
     archive2025.style.display='none';
@@ -2486,6 +2622,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
   }
   const metricGrid=document.querySelector('.wrap > .grid'); const mapCard=document.getElementById('priorityMapCard'); if(metricGrid&&mapCard&&mapCard.previousElementSibling!==metricGrid) metricGrid.insertAdjacentElement('afterend',mapCard);
+  const priorityRecommendationPanel=document.getElementById('priorityRecommendationPanel');
+  // Keep the recommendation panel directly after the map, as part of the Beranda page.
+  if(mapCard&&priorityRecommendationPanel&&priorityRecommendationPanel.previousElementSibling!==mapCard) mapCard.insertAdjacentElement('afterend',priorityRecommendationPanel);
   const mapDetails=mapCard?.querySelector('details');
   if(mapDetails){
     // Peta langsung terbuka saat Beranda dimuat, tetapi judul tetap bisa diklik untuk menutup/membuka.
