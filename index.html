@@ -2453,18 +2453,24 @@ function renderPriorityRecommendation(ctx){
    p.points=0;p.reasons=[];
    return p;
  });
+ // Kasus menjadi dasar utama peringkat. Jika kasus sama, utamakan denominator yang memadai
+ // sebelum membandingkan prevalensi agar denominator kecil tidak menang hanya karena persentase tinggi.
  const sortMetric=(a,b,key)=>b.metrics[key].cases-a.metrics[key].cases||
+   (Number(a.denom<40)-Number(b.denom<40))||
    (Number.isFinite(b.metrics[key].pct)?b.metrics[key].pct:-1)-(Number.isFinite(a.metrics[key].pct)?a.metrics[key].pct:-1)||
    a.name.localeCompare(b.name,"id");
  ["stunting","underweight","wasting","risikoLebih"].forEach(key=>{
-   const ranked=rows.filter(p=>p.denom>0).slice().sort((a,b)=>sortMetric(a,b,key));
+   // Posyandu tanpa kasus tidak diberi peringkat dan tidak memperoleh poin.
+   const ranked=rows.filter(p=>p.denom>0&&p.metrics[key].cases>0).slice().sort((a,b)=>sortMetric(a,b,key));
    ranked.forEach((p,i)=>{p.metrics[key].rank=i+1;});
    if(key!=="risikoLebih") ranked.slice(0,3).forEach((p,i)=>{
      const points=3-i;p.points+=points;
      p.reasons.push(`${definitions.find(d=>d.key===key).label} #${i+1}`);
    });
  });
- const scoreRows=rows.filter(p=>p.denom>0).sort((a,b)=>b.points-a.points||b.totalCases-a.totalCases||a.name.localeCompare(b.name,"id"));
+ // Urutan gabungan: poin, jumlah kasus indikator, lalu nama. Denominator kecil menjadi
+ // pemecah seri sebelum nama, sehingga persentase tinggi saja tidak mengangkatnya ke atas.
+ const scoreRows=rows.filter(p=>p.denom>0).sort((a,b)=>b.points-a.points||b.totalCases-a.totalCases||Number(a.denom<40)-Number(b.denom<40)||a.name.localeCompare(b.name,"id"));
  const unrecorded=(children||[]).filter(c=>measuredInPeriod(c)&&(!String(c.posyandu||"").trim()||String(c.posyandu||"").trim().toUpperCase()==="TIDAK TERCATAT")).length;
  const totalMeasured=rows.reduce((n,p)=>n+p.denom,0);
  if(!totalMeasured){
@@ -2492,7 +2498,7 @@ function renderPriorityRecommendation(ctx){
    // Kartu jalur terpisah hanya menampilkan saran risiko gizi lebih sekali.
    const advice=(kind==="separate"?riskAdvice:[...activeAdvice,...riskAdvice]).map(d=>`<li>${safe(d.advice)}</li>`).join("");
    const heading=kind==="combined"?(index===0?"Prioritas 1":`Prioritas ${index+1}`):"Jalur terpisah • Risiko gizi lebih";
-   const scoreLine=kind==="combined"?`Skor gabungan: ${p.points} poin • Total kasus indikator: ${p.totalCases}`:`Peringkat risiko gizi lebih: #${p.metrics.risikoLebih.rank}`;
+   const scoreLine=kind==="combined"?`Skor gabungan: ${p.points} poin • Total kasus indikator: ${p.totalCases}`:(p.metrics.risikoLebih.rank?`Peringkat risiko gizi lebih: #${p.metrics.risikoLebih.rank}`:"Tidak masuk peringkat risiko gizi lebih");
    return `<article class="village-issue-card priority-rec-card"><h4>${safe(heading)} — ${safe(p.name)}</h4><div class="priority-rec-meta">${safe(scoreLine)} • ${p.denom} anak terukur</div>${small?'<div class="priority-rec-warning">Jumlah anak kecil, tafsirkan hati-hati (denominator kurang dari 40 anak).</div>':""}<div style="margin:8px 0">${reasonMarkup}</div><div class="village-issue-metrics">${indicators}</div>${kind==="combined"&&p.reasons.length===0?'<p class="priority-rec-meta">Tidak masuk tiga besar pada indikator gabungan yang dinilai.</p>':""}${advice?`<div class="priority-rec-meta"><b>Saran awal tindak lanjut</b></div><ul class="priority-rec-actions">${advice}</ul>`:""}</article>`;
  };
  const topFive=scoreRows.slice(0,5);
