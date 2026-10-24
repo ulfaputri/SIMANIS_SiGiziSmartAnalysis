@@ -2453,24 +2453,18 @@ function renderPriorityRecommendation(ctx){
    p.points=0;p.reasons=[];
    return p;
  });
- // Kasus menjadi dasar utama peringkat. Jika kasus sama, utamakan denominator yang memadai
- // sebelum membandingkan prevalensi agar denominator kecil tidak menang hanya karena persentase tinggi.
  const sortMetric=(a,b,key)=>b.metrics[key].cases-a.metrics[key].cases||
-   (Number(a.denom<40)-Number(b.denom<40))||
    (Number.isFinite(b.metrics[key].pct)?b.metrics[key].pct:-1)-(Number.isFinite(a.metrics[key].pct)?a.metrics[key].pct:-1)||
    a.name.localeCompare(b.name,"id");
  ["stunting","underweight","wasting","risikoLebih"].forEach(key=>{
-   // Posyandu tanpa kasus tidak diberi peringkat dan tidak memperoleh poin.
-   const ranked=rows.filter(p=>p.denom>0&&p.metrics[key].cases>0).slice().sort((a,b)=>sortMetric(a,b,key));
+   const ranked=rows.filter(p=>p.denom>0).slice().sort((a,b)=>sortMetric(a,b,key));
    ranked.forEach((p,i)=>{p.metrics[key].rank=i+1;});
    if(key!=="risikoLebih") ranked.slice(0,3).forEach((p,i)=>{
      const points=3-i;p.points+=points;
      p.reasons.push(`${definitions.find(d=>d.key===key).label} #${i+1}`);
    });
  });
- // Urutan gabungan: poin, jumlah kasus indikator, lalu nama. Denominator kecil menjadi
- // pemecah seri sebelum nama, sehingga persentase tinggi saja tidak mengangkatnya ke atas.
- const scoreRows=rows.filter(p=>p.denom>0).sort((a,b)=>b.points-a.points||b.totalCases-a.totalCases||Number(a.denom<40)-Number(b.denom<40)||a.name.localeCompare(b.name,"id"));
+ const scoreRows=rows.filter(p=>p.denom>0).sort((a,b)=>b.points-a.points||b.totalCases-a.totalCases||a.name.localeCompare(b.name,"id"));
  const unrecorded=(children||[]).filter(c=>measuredInPeriod(c)&&(!String(c.posyandu||"").trim()||String(c.posyandu||"").trim().toUpperCase()==="TIDAK TERCATAT")).length;
  const totalMeasured=rows.reduce((n,p)=>n+p.denom,0);
  if(!totalMeasured){
@@ -2498,7 +2492,7 @@ function renderPriorityRecommendation(ctx){
    // Kartu jalur terpisah hanya menampilkan saran risiko gizi lebih sekali.
    const advice=(kind==="separate"?riskAdvice:[...activeAdvice,...riskAdvice]).map(d=>`<li>${safe(d.advice)}</li>`).join("");
    const heading=kind==="combined"?(index===0?"Prioritas 1":`Prioritas ${index+1}`):"Jalur terpisah • Risiko gizi lebih";
-   const scoreLine=kind==="combined"?`Skor gabungan: ${p.points} poin • Total kasus indikator: ${p.totalCases}`:(p.metrics.risikoLebih.rank?`Peringkat risiko gizi lebih: #${p.metrics.risikoLebih.rank}`:"Tidak masuk peringkat risiko gizi lebih");
+   const scoreLine=kind==="combined"?`Skor gabungan: ${p.points} poin • Total kasus indikator: ${p.totalCases}`:`Peringkat risiko gizi lebih: #${p.metrics.risikoLebih.rank}`;
    return `<article class="village-issue-card priority-rec-card"><h4>${safe(heading)} — ${safe(p.name)}</h4><div class="priority-rec-meta">${safe(scoreLine)} • ${p.denom} anak terukur</div>${small?'<div class="priority-rec-warning">Jumlah anak kecil, tafsirkan hati-hati (denominator kurang dari 40 anak).</div>':""}<div style="margin:8px 0">${reasonMarkup}</div><div class="village-issue-metrics">${indicators}</div>${kind==="combined"&&p.reasons.length===0?'<p class="priority-rec-meta">Tidak masuk tiga besar pada indikator gabungan yang dinilai.</p>':""}${advice?`<div class="priority-rec-meta"><b>Saran awal tindak lanjut</b></div><ul class="priority-rec-actions">${advice}</ul>`:""}</article>`;
  };
  const topFive=scoreRows.slice(0,5);
@@ -3368,3 +3362,259 @@ body{font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif!important;color:var(--
 .priority-schematic-heading span{display:inline-flex;align-items:center;justify-content:center;max-width:100%;padding:7px 12px;border-radius:9px;background:#e0f2fe;border:1px solid #7dd3fc;color:#075985!important;font-size:14px!important;font-weight:800!important;line-height:1.4;letter-spacing:.1px;opacity:1!important;text-shadow:none!important;white-space:normal}
 @media(max-width:600px){.priority-schematic-heading{align-items:flex-start;flex-direction:column;gap:7px}.priority-schematic-heading span{font-size:13px!important;padding:6px 10px}}
 </style>
+
+
+<!-- SI-MANIS visual refresh 2026: CSS-only presentation update; existing application logic preserved -->
+<style id="simanis-visual-refresh-2026">
+:root{
+  --bg:#f5f8fa;
+  --card:#ffffff;
+  --ink:#152d3b;
+  --muted:#637784;
+  --primary:#147fa0;
+  --primary2:#0d6177;
+  --line:#dce6eb;
+  --shadow:0 8px 28px rgba(24,65,84,.065);
+  --dash-blue:#1687c9;
+  --dash-blue2:#0d6fd3;
+  --dash-teal:#0f766e;
+  --dash-ink:#173847;
+  --dash-bg:#f5f8fa;
+  --dash-line:#dce6eb;
+  --dash-shadow:0 8px 28px rgba(24,65,84,.065);
+}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg)!important;
+  color:var(--ink)!important;
+  font-family:Inter,"Segoe UI",Roboto,Arial,sans-serif!important;
+  line-height:1.55!important;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font-family:inherit!important}
+button{transition:background-color .16s ease,border-color .16s ease,box-shadow .16s ease,transform .16s ease}
+button:hover{filter:brightness(.98)}
+:focus-visible{outline:3px solid #67b9d1!important;outline-offset:2px}
+main.wrap{padding-top:24px!important;padding-bottom:42px!important}
+.home-hero{
+  margin:0 0 22px!important;
+  border:1px solid var(--line)!important;
+  border-radius:22px!important;
+  overflow:hidden;
+  background:#fff!important;
+  box-shadow:var(--shadow)!important;
+}
+.home-hero img{display:block;width:100%;height:auto;object-fit:contain}
+.card,.section,.simanis-page-card{
+  border:1px solid var(--line)!important;
+  border-radius:18px!important;
+  background:var(--card)!important;
+  box-shadow:var(--shadow)!important;
+}
+.card{padding:18px!important}
+.section{margin-top:18px!important;padding:18px!important}
+.section h2,.card h2,.simanis-page-card h2{
+  color:#163e50!important;
+  font-size:clamp(17px,1.35vw,21px)!important;
+  font-weight:800!important;
+  line-height:1.3!important;
+  letter-spacing:-.025em!important;
+}
+.section p.help,.help{color:var(--muted)!important;line-height:1.65!important}
+.metric{
+  border:1px solid var(--line)!important;
+  border-radius:16px!important;
+  background:linear-gradient(145deg,#fff 0%,#f8fbfc 100%)!important;
+  box-shadow:0 4px 15px rgba(24,65,84,.045)!important;
+  text-align:left!important;
+  padding:16px!important;
+}
+.metric .label{color:#617683!important;font-size:12px!important;line-height:1.45!important}
+.metric .num{color:#123f54;font-size:clamp(22px,2vw,30px)!important;font-weight:800!important;letter-spacing:-.035em}
+.metric.red .num{color:var(--red)!important}
+.metric.yellow .num{color:var(--yellow)!important}
+.metric.green .num{color:var(--green)!important}
+.controls{
+  gap:12px!important;
+  padding:12px!important;
+  border:1px solid var(--line)!important;
+  border-radius:16px!important;
+  background:#f9fbfc!important;
+}
+input,select,textarea{
+  border:1px solid #d5e1e7!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#203c4b!important;
+  min-height:42px;
+  box-shadow:none!important;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:#56a6bd!important;
+  box-shadow:0 0 0 3px rgba(20,127,160,.12)!important;
+}
+.btn,button.btn{
+  background:var(--primary)!important;
+  color:#fff!important;
+  border-radius:999px!important;
+  padding:10px 16px!important;
+  font-weight:750!important;
+  box-shadow:0 4px 12px rgba(20,127,160,.13);
+}
+.btn:hover,button.btn:hover{background:var(--primary2)!important}
+.btn2,button.btn2{
+  background:#eef7fa!important;
+  color:var(--primary2)!important;
+  border:1px solid #d6e9ef!important;
+  border-radius:999px!important;
+  padding:10px 16px!important;
+  font-weight:750!important;
+}
+.chartgrid{gap:16px!important}
+.chartgrid .card{min-width:0}
+.line-trend-wrap,.chart{border-radius:14px}
+.tablehead{gap:12px}
+.child,.homevisit-card,.fu-priority-card,.followup-kpi,.coverage-month,.geo-pie-card{
+  border:1px solid var(--line)!important;
+  border-radius:15px!important;
+  box-shadow:0 3px 12px rgba(24,65,84,.035)!important;
+}
+.child{padding:15px!important}
+.name,.homevisit-name{color:#155d79!important}
+.pagination button{
+  border:1px solid var(--line)!important;
+  border-radius:999px!important;
+  background:#fff!important;
+}
+.pagination button.active{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
+details>summary{
+  border-radius:13px!important;
+  line-height:1.45!important;
+}
+.edu,.isi-piringku-card,.edu-material,.followup-form,.homevisit-filter-box,.homevisit-target{
+  border-radius:18px!important;
+  box-shadow:0 4px 16px rgba(24,65,84,.045)!important;
+}
+.priority-schematic-wrap,#priorityMapCard{
+  border-radius:20px!important;
+  box-shadow:var(--shadow)!important;
+}
+#priorityMapCard>details>summary{
+  border-radius:14px!important;
+  background:linear-gradient(110deg,#126d91,#0f766e)!important;
+  padding:16px 20px!important;
+  font-size:clamp(17px,1.45vw,22px)!important;
+  letter-spacing:-.02em;
+}
+#priorityMapCard .priority-schematic-heading{
+  background:linear-gradient(110deg,#126d91,#0f766e)!important;
+  border-radius:12px!important;
+}
+#priorityMapCard .priority-village,#priorityMapCard .priority-schematic-wrap,
+.priority-rec-card,.village-issue-card,.village-program-row{
+  border-radius:16px!important;
+}
+.village-issue-panel{
+  border-radius:20px!important;
+  box-shadow:var(--shadow)!important;
+}
+footer{padding:26px 18px!important;color:#71828d!important}
+.simanis-sidebar{
+  background:#fff!important;
+  border-right:1px solid var(--line)!important;
+  box-shadow:5px 0 26px rgba(24,65,84,.045)!important;
+}
+.simanis-side-brand{
+  border-bottom:1px solid #e8eef1!important;
+}
+.simanis-side-logo{
+  background:linear-gradient(135deg,#1687c9,#0f766e)!important;
+  box-shadow:0 5px 14px rgba(20,127,160,.18)!important;
+}
+.simanis-side-brand b{color:#173f52!important}
+.simanis-side-brand small{color:#71828d!important;line-height:1.4!important}
+.simanis-side-nav a{
+  border-radius:12px!important;
+  color:#526b79!important;
+  transition:background-color .16s ease,color .16s ease,transform .16s ease!important;
+}
+.simanis-side-nav a:hover{background:#eef7fa!important;color:#126d91!important}
+.simanis-side-nav a.active{
+  background:linear-gradient(110deg,#1687c9,#0f766e)!important;
+  color:#fff!important;
+  box-shadow:0 5px 14px rgba(20,127,160,.16)!important;
+}
+.simanis-mobile-nav{
+  background:rgba(255,255,255,.96)!important;
+  border-top:1px solid var(--line)!important;
+  box-shadow:0 -8px 28px rgba(24,65,84,.08)!important;
+  backdrop-filter:blur(14px);
+}
+.simanis-mobile-nav a{border-radius:12px!important}
+.simanis-mobile-nav a.active{color:#0d718d!important;background:#edf7fa!important}
+.modal .sheet{
+  border-radius:24px 24px 0 0!important;
+  box-shadow:0 -12px 44px rgba(12,38,52,.15)!important;
+}
+.sourcebox{border-radius:14px!important}
+@media(min-width:901px){
+  .simanis-sidebar{width:238px!important;padding:20px 15px!important}
+  .simanis-side-brand{padding:8px 7px 20px!important;margin-bottom:16px!important}
+  .simanis-side-logo{width:46px!important;height:46px!important;border-radius:14px!important}
+  .simanis-side-brand b{font-size:19px!important}
+  .simanis-side-brand small{font-size:10px!important}
+  .simanis-side-nav{gap:5px!important}
+  .simanis-side-nav a,.simanis-side-nav a:first-child{
+    min-height:46px!important;
+    padding:11px 13px!important;
+    gap:11px!important;
+    border-radius:12px!important;
+    font-size:13px!important;
+  }
+  .simanis-side-nav a span{font-size:13px!important}
+  main.wrap{
+    margin-left:238px!important;
+    padding:24px clamp(20px,2.2vw,36px) 42px!important;
+    max-width:none!important;
+  }
+  .home-hero{margin-bottom:20px!important}
+  .grid{gap:12px!important}
+  .metric{min-height:96px!important}
+  .metric .label{font-size:12px!important}
+  .section{margin-top:18px!important}
+  .chartgrid{gap:16px!important}
+}
+@media(min-width:901px) and (max-width:1150px){
+  .simanis-sidebar{width:210px!important}
+  main.wrap{margin-left:210px!important;padding-left:18px!important;padding-right:18px!important}
+  .simanis-side-nav a,.simanis-side-nav a:first-child{padding:10px!important;gap:8px!important}
+}
+@media(max-width:900px){
+  body{background:#f5f8fa!important}
+  main.wrap{padding:14px 14px 110px!important;margin:0!important}
+  .home-hero{border-radius:17px!important;margin-bottom:15px!important}
+  .card,.section,.simanis-page-card{border-radius:16px!important}
+  .card{padding:15px!important}
+  .section{padding:14px!important;margin-top:14px!important}
+  .metric{padding:13px!important}
+  .metric .label{font-size:11px!important}
+  .metric .num{font-size:24px!important}
+  .controls{padding:10px!important;border-radius:14px!important}
+  .simanis-mobile-nav{padding:7px 8px!important}
+}
+@media(max-width:560px){
+  main.wrap{padding:10px 10px 106px!important}
+  .home-hero{border-radius:14px!important}
+  .card,.section{padding:12px!important;border-radius:14px!important}
+  .metric{padding:11px 10px!important;min-height:78px!important}
+  .metric .num{font-size:21px!important}
+  .section h2,.card h2,.simanis-page-card h2{font-size:16px!important}
+  .btn,button.btn,.btn2,button.btn2{padding:10px 13px!important}
+  .simanis-mobile-nav a{font-size:10px!important;gap:3px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+</style>
+
